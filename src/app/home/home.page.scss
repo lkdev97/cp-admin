@@ -26,3 +26,23 @@
   text-decoration: none;
 }
 
+.hidden {
+  display: none;
+}
+
+
+#floor-buttons {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; 
+}
+
+ion-button {
+  margin: 0 5px;
+}
+

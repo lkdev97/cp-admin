@@ -1,4 +1,3 @@
-// src/app/home/home.page.ts
 import { Component, OnInit } from '@angular/core';
 import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
@@ -14,12 +13,17 @@ export class HomePage implements OnInit {
   private apiURL = 'https://mocainfo.thm.de/indoor-model/api/v2/buildings';
   buildings: any[] = [];
   private map!: L.Map;
+  private currentPolygon: L.Polygon | null = null;
+  displayStyle: string = 'none';
+  isVisible: boolean = false;
   
   constructor(private http: HttpClient) { }
 
   ngOnInit() {
     this.initMap();
-  
+  }
+
+  ionViewDidEnter() {
     this.getBuildings().subscribe(
       (data: any) => {
         console.log('Data:', data);
@@ -34,23 +38,24 @@ export class HomePage implements OnInit {
   
               polygon.on('click', () => {
                 console.log(`clicked on building ${building.name}`);
+                console.log(`Building: "${building.levels}`);
+                this.loadFloorButtons(building);
+                this.drawRooms(building, 0); 
               });
-
+  
               polygon.on('mouseover', function () {
                 polygon.setStyle({ color: 'rgba(0, 0, 255, 0.7)' });
               });
-
+  
               polygon.on('mouseout', function () {
                 polygon.setStyle({ color: 'blue' });
               });
-            } 
+            }
           });
-        } 
+        }
       },
     );
   }
-  
-  
 
   initMap() {
     this.map = L.map('map').setView([50.58693, 8.68239], 19);
@@ -77,8 +82,54 @@ export class HomePage implements OnInit {
       .bindPopup('THM, Gießen')
       .openPopup();
   }
-  
 
+  drawRooms(building: any, selectedLevel: number): void {
+    const selectedFloor = building.levels.find((level: any) => level.level === selectedLevel);
+    if (!selectedFloor) {
+      console.error(`Level ${selectedLevel} not found for the building.`);
+      return;
+    }
+    this.isVisible = true;
+
+    const rooms = selectedFloor.rooms;
+
+    if (this.currentPolygon) {
+      this.map.removeLayer(this.currentPolygon);
+    }
+
+    const roomCoordinates: L.LatLngExpression[][] = rooms.map((room: any) =>
+      room.points.map((point: any) => [point.lat, point.lng])
+    );
+
+    this.currentPolygon = L.polygon(roomCoordinates, { color: 'grey' }).addTo(this.map);
+  }
+
+  loadFloorButtons(building: any) {
+    const floorButtonsContainer = document.getElementById('floor-buttons');
+    if (!floorButtonsContainer) return;
+
+    floorButtonsContainer.innerHTML = '';
+    building.levels.forEach((level: any, index: number) => {
+      const button = document.createElement('ion-button');
+      button.innerText = `OG ${index}`;
+      button.addEventListener('click', () => {
+        console.log(`Floor ${index}`);
+        this.drawRooms(building, level.level);
+      });
+      floorButtonsContainer.appendChild(button);
+    });
+  }
+
+  clearRooms() {
+    if (this.currentPolygon) {
+      this.map.removeLayer(this.currentPolygon);
+      this.currentPolygon = null;
+      const btns = document.getElementById('floor-buttons');
+      if (!btns) return;
+      btns.innerHTML = '';
+      this.isVisible = false;
+    }
+  }
 
   getBuildings(): Observable<any> {
     return this.http.get(this.apiURL);

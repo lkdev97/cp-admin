@@ -3,9 +3,15 @@
     <ion-title>
       Bachelorarbeit - Lars Köhler
     </ion-title>
+    <ion-buttons [ngClass]="{ 'hidden': !isVisible }" slot="end">
+      <ion-button (click)="clearRooms()">
+        <ion-icon slot="icon-only" name="exit-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
   <div id="map" style="height: 100%; width: 100%"></div>
+  <div id="floor-buttons" style="display: flex; justify-content: center; margin-top: 10px;"></div>
 </ion-content>
