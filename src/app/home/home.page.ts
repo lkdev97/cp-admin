@@ -11,9 +11,11 @@ import { Observable } from 'rxjs';
 export class HomePage implements OnInit {
 
   private apiURL = 'http://localhost:32800/api/v2/buildings';
+  private cpURL = 'http://localhost:32811/calibrationPoints'; //
   buildings: any[] = [];
   private map!: L.Map;
   private currentPolygon: L.Polygon | null = null;
+  private centerLatLng : L.LatLngExpression = [50.58693, 8.68239];
   isVisible: boolean = false;
   
   constructor(private http: HttpClient) { }
@@ -36,10 +38,13 @@ export class HomePage implements OnInit {
               const polygon = L.polygon(buildingCoordinates, { color: 'blue', weight: 1 }).addTo(this.map);
   
               polygon.on('click', () => {
+                this.map.setView(buildingCoordinates[0], 20);
                 console.log(`clicked on building ${building.name}`);
                 console.log(`Building: "${building.levels}`);
                 this.loadFloorButtons(building);
-                this.drawRooms(building, 0); 
+                this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
+                  this.drawRooms(building, 0, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, '')))); 
+                });
               });
   
               polygon.on('mouseover', function () {
@@ -57,7 +62,7 @@ export class HomePage implements OnInit {
   }
 
   initMap() {
-    this.map = L.map('map').setView([50.58693, 8.68239], 19);
+    this.map = L.map('map').setView(this.centerLatLng, 19);
   
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
@@ -82,12 +87,13 @@ export class HomePage implements OnInit {
       .openPopup();
   }
 
-  drawRooms(building: any, selectedLevel: number): void {
+  drawRooms(building: any, selectedLevel: number, calibrationPoints: any): void {
     const selectedFloor = building.levels.find((level: any) => level.level === selectedLevel);
     if (!selectedFloor) {
       console.error(`Level ${selectedLevel} not found for the building.`);
       return;
     }
+    const calibrationPointByFloor = calibrationPoints.filter((x: any) => x.floor === selectedLevel);
     this.isVisible = true;
 
     const rooms = selectedFloor.rooms;
@@ -100,6 +106,10 @@ export class HomePage implements OnInit {
       room.points.map((point: any) => [point.lat, point.lng])
     );
 
+    calibrationPointByFloor.forEach((data: any) => {
+        L.circle([data.lat, data.lng], 0.5, { color: 'yellow' })
+        .addTo(this.map);
+    });
     this.currentPolygon = L.polygon(roomCoordinates, { color: 'grey' }).addTo(this.map);
   }
 
@@ -113,7 +123,10 @@ export class HomePage implements OnInit {
       button.innerText = `OG ${index}`;
       button.addEventListener('click', () => {
         console.log(`Floor ${index}`);
-        this.drawRooms(building, level.level);
+        this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
+          this.drawRooms(building, level.level, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, ''))));
+        });
+        
       });
       floorButtonsContainer.appendChild(button);
     });
@@ -127,10 +140,15 @@ export class HomePage implements OnInit {
       if (!btns) return;
       btns.innerHTML = '';
       this.isVisible = false;
+      this.map.setView(this.centerLatLng, 19);
     }
   }
 
   getBuildings(): Observable<any> {
     return this.http.get(this.apiURL);
+  }
+
+  getCalibrationPoints(): Observable<any> {
+    return this.http.get(this.cpURL);
   }
 }
