@@ -14,7 +14,6 @@ export class HomePage implements OnInit {
   buildings: any[] = [];
   private map!: L.Map;
   private currentPolygon: L.Polygon | null = null;
-  displayStyle: string = 'none';
   isVisible: boolean = false;
   
   constructor(private http: HttpClient) { }
