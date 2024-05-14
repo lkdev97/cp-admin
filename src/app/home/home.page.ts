@@ -93,7 +93,7 @@ export class HomePage implements OnInit {
       console.error(`Level ${selectedLevel} not found for the building.`);
       return;
     }
-    const calibrationPointByFloor = calibrationPoints.filter((x: any) => x.floor === selectedLevel);
+    //const calibrationPointByFloor = calibrationPoints.filter((x: any) => x.floor === selectedLevel);
     this.isVisible = true;
 
     const rooms = selectedFloor.rooms;
@@ -106,7 +106,7 @@ export class HomePage implements OnInit {
       room.points.map((point: any) => [point.lat, point.lng])
     );
 
-    calibrationPointByFloor.forEach((data: any) => {
+    calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
         L.circle([data.lat, data.lng], 0.5, { color: 'yellow' })
         .addTo(this.map);
     });
