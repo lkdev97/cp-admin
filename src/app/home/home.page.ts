@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class HomePage implements OnInit {
 
-  private apiURL = 'https://mocainfo.thm.de/indoor-model/api/v2/buildings';
+  private apiURL = 'http://localhost:32800/api/v2/buildings';
   buildings: any[] = [];
   private map!: L.Map;
   private currentPolygon: L.Polygon | null = null;
