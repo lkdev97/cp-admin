@@ -120,7 +120,7 @@ export class HomePage implements OnInit {
     this.currentPolygon = L.polygon(roomCoordinates, { color: 'grey' }).addTo(this.map);
     
     calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
-      const circle = L.circle([data.lat, data.lng], 0.5, { color: 'yellow' })
+      const circle = L.circle([data.lat, data.lng], 0.5, { color: 'yellow', fillOpacity: 1 })
       .addTo(this.map)
       .on('click', (e) => {
         console.log("clicked calibrationpoint: ", e.target);
