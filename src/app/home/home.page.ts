@@ -117,12 +117,18 @@ export class HomePage implements OnInit {
       room.points.map((point: any) => [point.lat, point.lng])
     );
     
-    calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
-        const circle = L.circle([data.lat, data.lng], 0.5, { color: 'yellow' })
-        .addTo(this.map);
-        this.circles.push(circle);
-    });
     this.currentPolygon = L.polygon(roomCoordinates, { color: 'grey' }).addTo(this.map);
+    
+    calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
+      const circle = L.circle([data.lat, data.lng], 0.5, { color: 'yellow' })
+      .addTo(this.map)
+      .on('click', (e) => {
+        console.log("ya => ", e.target);
+        e.target.bindPopup(`Latitude: ${e.target._latlng.lat} <br> Longitude: ${e.target._latlng.lng}`).openPopup();
+      });
+      this.circles.push(circle);
+    });
+
   }
 
   loadFloorButtons(building: any) {
@@ -137,6 +143,7 @@ export class HomePage implements OnInit {
         console.log(`Floor ${index}`);
         this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
           this.drawRooms(building, level.level, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, ''))));
+          //button.disabled = true; // TODO
         });
         
       });
