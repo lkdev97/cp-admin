@@ -16,7 +16,9 @@ export class HomePage implements OnInit {
   private map!: L.Map;
   private currentPolygon: L.Polygon | null = null;
   private centerLatLng : L.LatLngExpression = [50.58693, 8.68239];
+  private circles: any[] = [];
   isVisible: boolean = false;
+  
   
   constructor(private http: HttpClient) { }
 
@@ -87,6 +89,14 @@ export class HomePage implements OnInit {
       .openPopup();
   }
 
+  removeCalibrationPoints(): void {
+    if (this.circles) {
+      this.circles.forEach(x => {
+        this.map.removeLayer(x);
+      });
+      this.circles = [];
+    }
+  }
   drawRooms(building: any, selectedLevel: number, calibrationPoints: any): void {
     const selectedFloor = building.levels.find((level: any) => level.level === selectedLevel);
     if (!selectedFloor) {
@@ -101,14 +111,16 @@ export class HomePage implements OnInit {
     if (this.currentPolygon) {
       this.map.removeLayer(this.currentPolygon);
     }
+    this.removeCalibrationPoints();
 
     const roomCoordinates: L.LatLngExpression[][] = rooms.map((room: any) =>
       room.points.map((point: any) => [point.lat, point.lng])
     );
-
+    
     calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
-        L.circle([data.lat, data.lng], 0.5, { color: 'yellow' })
+        const circle = L.circle([data.lat, data.lng], 0.5, { color: 'yellow' })
         .addTo(this.map);
+        this.circles.push(circle);
     });
     this.currentPolygon = L.polygon(roomCoordinates, { color: 'grey' }).addTo(this.map);
   }
@@ -141,6 +153,7 @@ export class HomePage implements OnInit {
       btns.innerHTML = '';
       this.isVisible = false;
       this.map.setView(this.centerLatLng, 19);
+      this.removeCalibrationPoints();
     }
   }
 
