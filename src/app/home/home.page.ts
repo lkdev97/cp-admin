@@ -123,7 +123,7 @@ export class HomePage implements OnInit {
       const circle = L.circle([data.lat, data.lng], 0.5, { color: 'yellow' })
       .addTo(this.map)
       .on('click', (e) => {
-        console.log("ya => ", e.target);
+        console.log("clicked calibrationpoint: ", e.target);
         e.target.bindPopup(`Latitude: ${e.target._latlng.lat} <br> Longitude: ${e.target._latlng.lng}`).openPopup();
       });
       this.circles.push(circle);
