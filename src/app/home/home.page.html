@@ -1,9 +1,26 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
+    <!-- <ion-title>
       Bachelorarbeit - Lars Köhler
-    </ion-title>
+    </ion-title> -->
+    <ion-buttons>
+      <ion-button (click)="centerView()">
+        <ion-icon name="locate-outline"></ion-icon>
+      </ion-button>
+      <ion-button>
+        <ion-icon name="information-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
     <ion-buttons [ngClass]="{ 'hidden': !isVisible }" slot="end">
+      <ion-button>
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-button>
+      <ion-button>
+        <ion-icon name="chevron-down-outline"></ion-icon>
+      </ion-button>
+      <ion-button>
+        <ion-icon name="folder-open-outline"></ion-icon>
+      </ion-button>
       <ion-button (click)="clearRooms()">
         <ion-icon slot="icon-only" name="exit-outline"></ion-icon>
       </ion-button>
