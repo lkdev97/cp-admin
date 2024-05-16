@@ -124,7 +124,7 @@ export class HomePage implements OnInit {
       .addTo(this.map)
       .on('click', (e) => {
         console.log("clicked calibrationpoint: ", e.target);
-        e.target.bindPopup(`Latitude: ${e.target._latlng.lat} <br> Longitude: ${e.target._latlng.lng}`).openPopup();
+        e.target.bindPopup(`Latitude: ${e.target._latlng.lat} <br> Longitude: ${e.target._latlng.lng} <br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`).openPopup();
       });
       this.circles.push(circle);
     });
@@ -159,9 +159,13 @@ export class HomePage implements OnInit {
       if (!btns) return;
       btns.innerHTML = '';
       this.isVisible = false;
-      this.map.setView(this.centerLatLng, 19);
+      this.centerView();
       this.removeCalibrationPoints();
     }
+  }
+
+  centerView() {
+    this.map.setView(this.centerLatLng, 19);
   }
 
   getBuildings(): Observable<any> {
