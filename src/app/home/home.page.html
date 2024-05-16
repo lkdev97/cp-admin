@@ -12,6 +12,7 @@
       </ion-button>
     </ion-buttons>
     <ion-buttons [ngClass]="{ 'hidden': !isVisible }" slot="end">
+      <p>Gebäude: {{selectedBuilding}}<br>Stockwerk: {{selectedFloor}}</p>
       <ion-button>
         <ion-icon name="add-outline"></ion-icon>
       </ion-button>
