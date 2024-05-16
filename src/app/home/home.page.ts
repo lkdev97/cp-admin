@@ -18,6 +18,8 @@ export class HomePage implements OnInit {
   private centerLatLng : L.LatLngExpression = [50.58693, 8.68239];
   private circles: any[] = [];
   isVisible: boolean = false;
+  selectedBuilding: String = '';
+  selectedFloor: String = '';
   
   
   constructor(private http: HttpClient) { }
@@ -45,6 +47,8 @@ export class HomePage implements OnInit {
                 console.log(`Building: "${building.levels}`);
                 this.loadFloorButtons(building);
                 this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
+                  this.selectedFloor = "0";
+                  this.selectedBuilding = building.name;
                   this.drawRooms(building, 0, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, '')))); 
                 });
               });
@@ -122,9 +126,10 @@ export class HomePage implements OnInit {
     calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
       const circle = L.circle([data.lat, data.lng], 0.5, { color: 'yellow', fillOpacity: 1 })
       .addTo(this.map)
+      .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lng} <br> Longitude: ${data.lng} <br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`)
       .on('click', (e) => {
         console.log("clicked calibrationpoint: ", e.target);
-        e.target.bindPopup(`Latitude: ${e.target._latlng.lat} <br> Longitude: ${e.target._latlng.lng} <br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`).openPopup();
+        e.target.openPopup();
       });
       this.circles.push(circle);
     });
@@ -138,10 +143,13 @@ export class HomePage implements OnInit {
     floorButtonsContainer.innerHTML = '';
     building.levels.forEach((level: any, index: number) => {
       const button = document.createElement('ion-button');
+      button.setAttribute("id", `${index}`);
       button.innerText = `OG ${index}`;
       button.addEventListener('click', () => {
         console.log(`Floor ${index}`);
         this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
+          this.selectedFloor = level.level;
+          this.selectedBuilding = building.name;
           this.drawRooms(building, level.level, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, ''))));
           //button.disabled = true; // TODO
         });
