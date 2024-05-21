@@ -47,3 +47,44 @@ ion-button {
   margin: 0 5px;
 }
 
+.circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.grey {
+  background-color: grey;
+  border: 2px solid grey;
+}
+
+.red {
+  background-color: red;
+}
+
+.yellow {
+  background-color: yellow;
+}
+
+.green {
+  background-color: green;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.blue {
+  background-color: blue;
+  border: 2px solid blue;
+}
+
+.no-fill {
+  //border: 2px solid grey;
+  background-color: transparent;
+}

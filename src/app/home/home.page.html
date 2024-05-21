@@ -7,7 +7,7 @@
       <ion-button (click)="centerView()">
         <ion-icon name="locate-outline"></ion-icon>
       </ion-button>
-      <ion-button>
+      <ion-button id="info">
         <ion-icon name="information-circle-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -28,6 +28,52 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+<ion-modal trigger="info">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+        <ion-title>Info</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <p>In der Innenraumansicht werden die Kalibrierungspunkte abhängig davon, wie viele Accesspoints sich in der Nähe befinden in einer anderen Farbe eingezeichnet. <br> Folgende Legende erklärt wofür welche Farbe steht:</p>
+      <div class="legend-item">
+        <div class="circle grey"></div>
+        <span>Keine Accesspoints</span>
+      </div>
+      <div class="legend-item">
+        <div class="circle red"></div>
+        <span>1-2 Accesspoints</span>
+      </div>
+      <div class="legend-item">
+        <div class="circle yellow"></div>
+        <span>3 Accesspoints</span>
+      </div>
+      <div class="legend-item">
+        <div class="circle green"></div>
+        <span>Mehr als 3 Accesspoints</span>
+      </div>
+      <div class="legend-item">
+        <div class="circle no-fill grey"></div>
+        <span>Noch nicht definiert</span>
+      </div>
+      <p>Accesspoints werden in folgenden Farben eingezeichnet:</p>
+      <div class="legend-item">
+        <div class="circle blue"></div>
+        <span>Aktiv</span>
+      </div>
+      <div class="legend-item">
+        <div class="circle blue no-fill"></div>
+        <span>Nicht aktiv</span>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
 
 <ion-content>
   <div id="map" style="height: 100%; width: 100%"></div>
