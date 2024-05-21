@@ -33,13 +33,14 @@
 
 #floor-buttons {
   position: absolute;
-  bottom: 10px;
-  left: 50%;
+  bottom: 50%;
+  left: 95%;
   transform: translateX(-50%);
-  display: flex;
+  display: grid;
   justify-content: center;
   align-items: center;
   z-index: 1000; 
+  //margin-top: 10px;
 }
 
 ion-button {
