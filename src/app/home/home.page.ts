@@ -18,6 +18,7 @@ export class HomePage implements OnInit {
   private currentPolygon: L.Polygon | null = null;
   private centerLatLng : L.LatLngExpression = [50.58693, 8.68239];
   private circles: any[] = [];
+  private accessPointCircles: any[] = [];
   isVisible: boolean = false;
   selectedBuilding: String = '';
   selectedFloor: String = '';
@@ -50,7 +51,8 @@ export class HomePage implements OnInit {
                   this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
                     this.selectedFloor = "0";
                     this.selectedBuilding = building.name;
-                    this.drawRooms(building, 0, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, '')))); 
+                    this.drawRooms(building, 0); 
+                    this.drawCalibrationPoints(0, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, ''))));
                   });
                 })
                 .on('mouseover', function () {
@@ -92,29 +94,19 @@ export class HomePage implements OnInit {
       .openPopup();
   }
 
-  removeCalibrationPoints(): void {
-    if (this.circles) {
-      this.circles.forEach(x => {
-        this.map.removeLayer(x);
-      });
-      this.circles = [];
-    }
-  }
-  drawRooms(building: any, selectedLevel: number, calibrationPoints: any): void {
+  drawRooms(building: any, selectedLevel: number): void {
     const selectedFloor = building.levels.find((level: any) => level.level === selectedLevel);
     if (!selectedFloor) {
       console.error(`Level ${selectedLevel} not found for the building.`);
       return;
     }
-    //const calibrationPointByFloor = calibrationPoints.filter((x: any) => x.floor === selectedLevel);
-    this.isVisible = true;
 
+    this.isVisible = true;
     const rooms = selectedFloor.rooms;
 
     if (this.currentPolygon) {
       this.map.removeLayer(this.currentPolygon);
     }
-    this.removeCalibrationPoints();
 
     const roomCoordinates: L.LatLngExpression[][] = rooms.map((room: any) =>
       room.points.map((point: any) => [point.lat, point.lng])
@@ -127,7 +119,11 @@ export class HomePage implements OnInit {
         //TODO: Add Calibrationpoint => POST /cpURL
         console.log("Add CP ", e);
     });
-    
+
+  }
+
+  drawCalibrationPoints(selectedLevel: number, calibrationPoints: any): void {
+    this.removeCalibrationPoints();
     calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
 
       let color = '';
@@ -142,10 +138,20 @@ export class HomePage implements OnInit {
       .on('click', (e) => {
         console.log("clicked calibrationpoint: ", e.target);
         e.target.openPopup();
+        data.fingerprints[0].accessPoints.forEach((x: any) => {
+          const accessPointCircle = L.circle([x.lat, x.lng], 0.5, { color: 'blue', fillOpacity: 1 }).addTo(this.map);
+          this.accessPointCircles.push(accessPointCircle);
+        });
+      })
+      .on('popupclose', () => {
+        this.accessPointCircles.forEach((accessCircle) => { 
+          this.map.removeLayer(accessCircle);
+        });
+        this.accessPointCircles = [];
       });
+      
       this.circles.push(circle);
     });
-
   }
 
   loadFloorButtons(building: any) {
@@ -157,13 +163,13 @@ export class HomePage implements OnInit {
       const button = document.createElement('ion-button');
       button.setAttribute("id", `${index}`);
       level.level >= 0 ? button.innerText = `OG ${level.level}` : button.innerText = `UG ${Math.abs(level.level)}`;
-      //button.innerText = `OG ${level.level}`;
       button.addEventListener('click', () => {
         console.log(`Floor ${index}`);
         this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
           this.selectedFloor = level.level;
           this.selectedBuilding = building.name;
-          this.drawRooms(building, level.level, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, ''))));
+          this.drawRooms(building, level.level);
+          this.drawCalibrationPoints(level.level, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, ''))));
           //button.disabled = true; // TODO
         });
         
@@ -181,6 +187,15 @@ export class HomePage implements OnInit {
     exitBtn.appendChild(exitIcon);
     exitBtn.addEventListener("click", this.clearRooms.bind(this));
     return exitBtn;
+  }
+  
+  removeCalibrationPoints(): void {
+    if (this.circles) {
+      this.circles.forEach(x => {
+        this.map.removeLayer(x);
+      });
+      this.circles = [];
+    }
   }
 
   clearRooms() {
