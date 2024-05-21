@@ -40,27 +40,25 @@ export class HomePage implements OnInit {
           buildings.forEach((building: any) => {
             if (building.shell && building.shell.points) {
               const buildingCoordinates: L.LatLngExpression[] = building.shell.points.map((point: any) => [point.lat, point.lng]);
-              const polygon = L.polygon(buildingCoordinates, { color: 'blue', weight: 1 }).addTo(this.map);
-  
-              polygon.on('click', () => {
-                this.map.setView(buildingCoordinates[0], 20);
-                console.log(`clicked on building ${building.name}`);
-                console.log(`Building: "${building.levels}`);
-                this.loadFloorButtons(building);
-                this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
-                  this.selectedFloor = "0";
-                  this.selectedBuilding = building.name;
-                  this.drawRooms(building, 0, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, '')))); 
+              const polygon = L.polygon(buildingCoordinates, { color: 'blue', weight: 1 })
+                .addTo(this.map)
+                .on('click', () => {
+                  this.map.setView(buildingCoordinates[0], 20);
+                  console.log(`clicked on building ${building.name}`);
+                  console.log(`Building: "${building.levels}`);
+                  this.loadFloorButtons(building);
+                  this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
+                    this.selectedFloor = "0";
+                    this.selectedBuilding = building.name;
+                    this.drawRooms(building, 0, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, '')))); 
+                  });
+                })
+                .on('mouseover', function () {
+                  polygon.setStyle({ color: 'rgba(0, 0, 255, 0.7)' });
+                })
+                .on('mouseout', function () {
+                  polygon.setStyle({ color: 'blue' });
                 });
-              });
-  
-              polygon.on('mouseover', function () {
-                polygon.setStyle({ color: 'rgba(0, 0, 255, 0.7)' });
-              });
-  
-              polygon.on('mouseout', function () {
-                polygon.setStyle({ color: 'blue' });
-              });
             }
           });
         }
