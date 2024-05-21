@@ -140,7 +140,7 @@ export class HomePage implements OnInit {
 
       const circle = L.circle([data.lat, data.lng], 0.5, { color: color, fillOpacity: 1 })
       .addTo(this.map)
-      .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lng} <br> Longitude: ${data.lng} <br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`)
+      .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`)
       .on('click', (e) => {
         console.log("clicked calibrationpoint: ", e.target);
         e.target.openPopup();
