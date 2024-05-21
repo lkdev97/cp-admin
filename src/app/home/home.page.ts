@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ModalController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -21,8 +22,8 @@ export class HomePage implements OnInit {
   selectedBuilding: String = '';
   selectedFloor: String = '';
   
-  
-  constructor(private http: HttpClient) { }
+
+  constructor(private http: HttpClient, private modalController: ModalController) { }
 
   ngOnInit() {
     this.initMap();
@@ -121,10 +122,23 @@ export class HomePage implements OnInit {
       room.points.map((point: any) => [point.lat, point.lng])
     );
     
-    this.currentPolygon = L.polygon(roomCoordinates, { color: 'grey' }).addTo(this.map);
+    this.currentPolygon = L.polygon(roomCoordinates, { color: 'grey'})
+      .addTo(this.map)
+      .on('click', (e) => {
+        e.target.bindPopup(`Add new Calibrationpoint! <br>Building: ${this.selectedBuilding}<br>Floor: ${this.selectedFloor} <br> Latitude: ${e.latlng.lat} <br> Longitude: ${e.latlng.lng} <br> <ion-button (click)="closePopup(e)" color="danger" fill="outline"><ion-icon name="close-outline"></ion-icon></ion-button><ion-button color="success" fill="outline"><ion-icon name="checkmark-outline"></ion-icon></ion-button>`).openPopup();
+        //TODO: Add Calibrationpoint => POST /cpURL
+        console.log("Add CP ", e);
+    });
     
     calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
-      const circle = L.circle([data.lat, data.lng], 0.5, { color: 'yellow', fillOpacity: 1 })
+
+      let color = '';
+      if(data.fingerprints[0].accessPoints.length == 0) color = 'grey';
+      else if(data.fingerprints[0].accessPoints.length <= 2) color = 'red';
+      else if(data.fingerprints[0].accessPoints.length <= 3) color = 'yellow';
+      else color = 'green';
+
+      const circle = L.circle([data.lat, data.lng], 0.5, { color: color, fillOpacity: 1 })
       .addTo(this.map)
       .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lng} <br> Longitude: ${data.lng} <br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`)
       .on('click', (e) => {
@@ -144,7 +158,8 @@ export class HomePage implements OnInit {
     building.levels.forEach((level: any, index: number) => {
       const button = document.createElement('ion-button');
       button.setAttribute("id", `${index}`);
-      button.innerText = `OG ${index}`;
+      level.level >= 0 ? button.innerText = `OG ${level.level}` : button.innerText = `UG ${Math.abs(level.level)}`;
+      //button.innerText = `OG ${level.level}`;
       button.addEventListener('click', () => {
         console.log(`Floor ${index}`);
         this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
@@ -155,8 +170,19 @@ export class HomePage implements OnInit {
         });
         
       });
-      floorButtonsContainer.appendChild(button);
+      floorButtonsContainer.prepend(button);
     });
+    floorButtonsContainer.appendChild(this.createExitBtn());
+  }
+
+  createExitBtn(): HTMLIonButtonElement {
+    const exitBtn = document.createElement('ion-button');
+    const exitIcon = document.createElement('ion-icon');
+    exitBtn.setAttribute("color", "danger");
+    exitIcon.setAttribute("name", "exit-outline");
+    exitBtn.appendChild(exitIcon);
+    exitBtn.addEventListener("click", this.clearRooms.bind(this));
+    return exitBtn;
   }
 
   clearRooms() {
@@ -172,8 +198,17 @@ export class HomePage implements OnInit {
     }
   }
 
+  async dismissModal() {
+    await this.modalController.dismiss();
+  }
+
   centerView() {
     this.map.setView(this.centerLatLng, 19);
+  }
+
+  closePopup(e: any) {
+    e.target.closePopup();
+    console.log("close");
   }
 
   getBuildings(): Observable<any> {
