@@ -115,7 +115,7 @@ export class HomePage implements OnInit {
     this.currentPolygon = L.polygon(roomCoordinates, { color: 'grey'})
       .addTo(this.map)
       .on('click', (e) => {
-        e.target.bindPopup(`Add new Calibrationpoint! <br>Building: ${this.selectedBuilding}<br>Floor: ${this.selectedFloor} <br> Latitude: ${e.latlng.lat} <br> Longitude: ${e.latlng.lng} <br> <ion-button (click)="closePopup(e)" color="danger" fill="outline"><ion-icon name="close-outline"></ion-icon></ion-button><ion-button color="success" fill="outline"><ion-icon name="checkmark-outline"></ion-icon></ion-button>`).openPopup();
+        e.target.bindPopup(`Add new Calibrationpoint! <br>Building: ${this.selectedBuilding}<br>Floor: ${this.selectedFloor} <br> Latitude: ${e.latlng.lat} <br> Longitude: ${e.latlng.lng} <br> <ion-button id="closePopupBtn" color="danger" fill="outline"><ion-icon name="close-outline"></ion-icon></ion-button><ion-button id="addCpBtn" color="success" fill="outline"><ion-icon name="checkmark-outline"></ion-icon></ion-button>`).openPopup();
         //TODO: Add Calibrationpoint => POST /cpURL
         console.log("Add CP ", e);
     });
@@ -134,7 +134,7 @@ export class HomePage implements OnInit {
 
       const circle = L.circle([data.lat, data.lng], 0.5, { color: color, fillOpacity: 1 })
       .addTo(this.map)
-      .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`)
+      .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${data.fingerprints[0].accessPoints.length}<br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`)
       .on('click', (e) => {
         console.log("clicked calibrationpoint: ", e.target);
         e.target.openPopup();
