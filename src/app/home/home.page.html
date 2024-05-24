@@ -13,7 +13,7 @@
     </ion-buttons>
     <ion-buttons [ngClass]="{ 'hidden': !isVisible }" slot="end">
       <p>Gebäude: {{selectedBuilding}}<br>Stockwerk: {{selectedFloor}}</p>
-      <ion-button>
+      <ion-button id="add-accesspoint">
         <ion-icon name="add-outline"></ion-icon>
       </ion-button>
       <ion-button>
@@ -22,12 +22,66 @@
       <ion-button>
         <ion-icon name="folder-open-outline"></ion-icon>
       </ion-button>
+      <ion-button id="list-cp">
+        <ion-icon name="reader-outline"></ion-icon>
+      </ion-button>
       <ion-button (click)="clearRooms()">
         <ion-icon slot="icon-only" name="exit-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+<ion-modal trigger="add-accesspoint">
+  <ng-template>
+    <form [formGroup]="accesspointForm" (ngSubmit)="addAccesspoint()">
+      <ion-header>
+        <ion-title>Neuen Accesspunkt hinzufügen</ion-title>
+      </ion-header>
+      <ion-list>
+        <ion-item>
+          <ion-input formControlName="bssid" label="bssid" placeholder="dc:9f:db:5a:cb:83"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="ssid" label="ssid" placeholder="MoCaPos"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="lat" type="number" label="Latitude" placeholder="50.587191115889425"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="lng" type="number" label="Longitude" placeholder="8.682209469495582"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="description" label="Description" placeholder="Am Fenster"></ion-input>
+        </ion-item>
+      </ion-list>
+      <ion-button type="submit" color="primary" [disabled]="!accesspointForm.valid">Add</ion-button>
+      <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">Close</ion-button>
+    </form>
+  </ng-template>
+</ion-modal>
+
+
+
+<ion-modal trigger="list-cp">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+        <ion-title>Kalibrierungspunkte</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-list *ngFor="let calibrationPoint of calibrationPoints">
+        <ion-item>
+          <p>ID: {{calibrationPoint.id}}<br>Latitude: {{calibrationPoint.lat}}<br>Longitude: {{calibrationPoint.lng}}<br>Accesspoints: {{calibrationPoint.fingerprints[0].accessPoints.length}}</p>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
 
 <ion-modal trigger="info">
   <ng-template>
@@ -63,11 +117,11 @@
       </div>
       <p>Accesspoints werden in folgenden Farben eingezeichnet:</p>
       <div class="legend-item">
-        <div class="circle blue"></div>
+        <ion-icon name="wifi-outline" style="width: 1.2em; height: 1.2em; background-color: blue; border-radius: 12rem; border: 1px solid blue; margin-right: 8px"></ion-icon>
         <span>Aktiv</span>
       </div>
       <div class="legend-item">
-        <div class="circle blue no-fill"></div>
+        <ion-icon name="wifi-outline" style="width: 1.2em; height: 1.2em; margin-right: 8px"></ion-icon>
         <span>Nicht aktiv</span>
       </div>
     </ion-content>
