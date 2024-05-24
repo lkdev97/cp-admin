@@ -35,7 +35,9 @@ export class HomePage implements OnInit {
       ssid: ['', Validators.required],
       lat: ['', [Validators.required, AccesspointValidatorService.latitudeValidator]],
       lng: ['', [Validators.required, AccesspointValidatorService.longitudeValidator]],
-      description: ['']
+      description: [''],
+      floor: [''],
+      building: ['']
     });
    }
 
@@ -110,14 +112,30 @@ export class HomePage implements OnInit {
 
   drawAccessPoints(): void {
     //TODO
-    this.getAccessPoints().subscribe((accessPoints: any) => {
-      console.log("Log ", accessPoints);
-      const acccessPoints = accessPoints.filter(() => accessPoints.floor === this.selectedFloor);
-      console.log("AP ", acccessPoints);
-      if(acccessPoints.length != 0) console.log("not null");
-      else console.log("null");
-      //L.circle([acccessPoints.lat, accessPoints.lng], 0.5, { color: 'orange' }).addTo(this.map);
+    const wifiIcon = L.icon({
+      iconUrl: './assets/icon/wifi-outline.png',
+      iconSize: [20, 20],
     });
+  
+    //L.icon({ iconUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon.png'}).createIcon()
+    this.removeAccessPoints();
+    this.getAccessPoints().subscribe((accessPoints: any) => {
+      const filteredAccessPoints = accessPoints.filter((x: any) => x.floor == this.selectedFloor);
+      filteredAccessPoints.forEach((filteredAccessPoint: any) => {
+        //const accessPointCirle = L.circle([filteredAccessPoint.lat, filteredAccessPoint.lng], 0.5, { color: 'orange', className: 'circle red hidden', attribution: "stroke=red"}).addTo(this.map).bindTooltip(`Accesspoint: ${filteredAccessPoint.bssid}`);
+        const s = L.marker([filteredAccessPoint.lat, filteredAccessPoint.lng], { icon: wifiIcon }).addTo(this.map).bindTooltip(`Accesspoint: ${filteredAccessPoint.bssid}`);
+        this.accessPointCircles.push(s);
+        //this.accessPointCircles.push(accessPointCirle);
+      })
+    });
+  }
+
+  removeAccessPoints(): void {
+    this.accessPointCircles.forEach((accessCircle) => { 
+      //this.map.setView([data.lat, data.lng],20 , { animate: false });
+      this.map.removeLayer(accessCircle);
+    });
+    this.accessPointCircles = [];
   }
 
   drawRooms(building: any, selectedLevel: number): void {
@@ -209,9 +227,10 @@ export class HomePage implements OnInit {
         console.log(`Floor ${index}`);
         this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
           this.selectedFloor = level.level;
-          this.selectedBuilding = building.name;
+          this.selectedBuilding = building.name.replace(/\s/g, '');
           this.drawRooms(building, level.level);
-          this.drawCalibrationPoints(level.level, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, ''))));
+          this.drawCalibrationPoints(level.level, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(this.selectedBuilding)));
+          this.drawAccessPoints();
           //button.disabled = true; // TODO
         });
         
@@ -250,6 +269,7 @@ export class HomePage implements OnInit {
       this.isVisible = false;
       this.centerView();
       this.removeCalibrationPoints();
+      this.removeAccessPoints();
     }
   }
 
@@ -286,10 +306,10 @@ export class HomePage implements OnInit {
   addAccesspoint(): void {
     if (this.accesspointForm.valid) {
       const formValues = this.accesspointForm.value;
+      if(!formValues.floor) formValues.floor = this.selectedFloor;
+      if(!formValues.building) formValues.building = this.selectedBuilding;
       const accessPointData = {
         ...formValues,
-        building: this.selectedBuilding,
-        floor: this.selectedFloor
       };
 
       this.http.post(this.accessPointsURL, accessPointData).subscribe();
