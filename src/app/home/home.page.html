@@ -54,6 +54,12 @@
         <ion-item>
           <ion-input formControlName="description" label="Description" placeholder="Am Fenster"></ion-input>
         </ion-item>
+        <ion-item>
+          <ion-input formControlName="floor" min=0 max=4 type="number" label="Stockwerk" placeholder="{{selectedFloor}}"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="building" label="Gebäude" placeholder="{{selectedBuilding}}" ></ion-input>
+        </ion-item>
       </ion-list>
       <ion-button type="submit" color="primary" [disabled]="!accesspointForm.valid">Add</ion-button>
       <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">Close</ion-button>
