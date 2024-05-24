@@ -3,6 +3,8 @@ import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ModalController } from '@ionic/angular';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AccesspointValidatorService } from '../validators/accesspoint-validator.service';
 
 @Component({
   selector: 'app-home',
@@ -13,6 +15,7 @@ export class HomePage implements OnInit {
 
   private apiURL = 'http://localhost:32800/api/v2/buildings';
   private cpURL = 'http://localhost:32811/calibrationPoints'; //
+  private accessPointsURL = 'http://localhost:3000/accesspoints' 
   buildings: any[] = [];
   private map!: L.Map;
   private currentPolygon: L.Polygon | null = null;
@@ -22,9 +25,19 @@ export class HomePage implements OnInit {
   isVisible: boolean = false;
   selectedBuilding: String = '';
   selectedFloor: String = '';
+  calibrationPoints: any[] = [];
+  accesspointForm: FormGroup;
   
 
-  constructor(private http: HttpClient, private modalController: ModalController) { }
+  constructor(private http: HttpClient, private modalController: ModalController, private fb: FormBuilder) {
+    this.accesspointForm = this.fb.group({
+      bssid: ['', [Validators.required, AccesspointValidatorService.bssidValidator]],
+      ssid: ['', Validators.required],
+      lat: ['', [Validators.required, AccesspointValidatorService.latitudeValidator]],
+      lng: ['', [Validators.required, AccesspointValidatorService.longitudeValidator]],
+      description: ['']
+    });
+   }
 
   ngOnInit() {
     this.initMap();
@@ -35,10 +48,10 @@ export class HomePage implements OnInit {
       (data: any) => {
         console.log('Data:', data);
   
-        const buildings = data?.buildings?.content;
+        this.buildings = data?.buildings?.content;
   
-        if (buildings && buildings.length > 0) {
-          buildings.forEach((building: any) => {
+        if (this.buildings && this.buildings.length > 0) {
+          this.buildings.forEach((building: any) => {
             if (building.shell && building.shell.points) {
               const buildingCoordinates: L.LatLngExpression[] = building.shell.points.map((point: any) => [point.lat, point.lng]);
               const polygon = L.polygon(buildingCoordinates, { color: 'blue', weight: 1 })
@@ -50,9 +63,10 @@ export class HomePage implements OnInit {
                   this.loadFloorButtons(building);
                   this.getCalibrationPoints().subscribe((calibrationPoint: any) => {
                     this.selectedFloor = "0";
-                    this.selectedBuilding = building.name;
+                    this.selectedBuilding = building.name.replace(/\s/g, '');
                     this.drawRooms(building, 0); 
-                    this.drawCalibrationPoints(0, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(building.name.replace(/\s/g, ''))));
+                    this.drawCalibrationPoints(0, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(this.selectedBuilding)));
+                    this.drawAccessPoints();
                   });
                 })
                 .on('mouseover', function () {
@@ -94,6 +108,18 @@ export class HomePage implements OnInit {
       .openPopup();
   }
 
+  drawAccessPoints(): void {
+    //TODO
+    this.getAccessPoints().subscribe((accessPoints: any) => {
+      console.log("Log ", accessPoints);
+      const acccessPoints = accessPoints.filter(() => accessPoints.floor === this.selectedFloor);
+      console.log("AP ", acccessPoints);
+      if(acccessPoints.length != 0) console.log("not null");
+      else console.log("null");
+      //L.circle([acccessPoints.lat, accessPoints.lng], 0.5, { color: 'orange' }).addTo(this.map);
+    });
+  }
+
   drawRooms(building: any, selectedLevel: number): void {
     const selectedFloor = building.levels.find((level: any) => level.level === selectedLevel);
     if (!selectedFloor) {
@@ -116,6 +142,7 @@ export class HomePage implements OnInit {
       .addTo(this.map)
       .on('click', (e) => {
         e.target.bindPopup(`Add new Calibrationpoint! <br>Building: ${this.selectedBuilding}<br>Floor: ${this.selectedFloor} <br> Latitude: ${e.latlng.lat} <br> Longitude: ${e.latlng.lng} <br> <ion-button id="closePopupBtn" color="danger" fill="outline"><ion-icon name="close-outline"></ion-icon></ion-button><ion-button id="addCpBtn" color="success" fill="outline"><ion-icon name="checkmark-outline"></ion-icon></ion-button>`).openPopup();
+        this.map.setView([e.latlng.lat, e.latlng.lng], this.map.getZoom(), {animate: false});
         //TODO: Add Calibrationpoint => POST /cpURL
         console.log("Add CP ", e);
     });
@@ -124,8 +151,9 @@ export class HomePage implements OnInit {
 
   drawCalibrationPoints(selectedLevel: number, calibrationPoints: any): void {
     this.removeCalibrationPoints();
+    this.calibrationPoints = calibrationPoints.filter((x: any) => x.floor === selectedLevel);
+    console.log(this.calibrationPoints);
     calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
-
       let color = '';
       if(data.fingerprints[0].accessPoints.length == 0) color = 'grey';
       else if(data.fingerprints[0].accessPoints.length <= 2) color = 'red';
@@ -134,17 +162,31 @@ export class HomePage implements OnInit {
 
       const circle = L.circle([data.lat, data.lng], 0.5, { color: color, fillOpacity: 1 })
       .addTo(this.map)
-      .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${data.fingerprints[0].accessPoints.length}<br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`)
+      .bindTooltip(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${data.fingerprints[0].accessPoints.length}`)
+      .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${data.fingerprints[0].accessPoints.length}<br> <ion-button fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button id="delete-cp" fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`, { closeOnClick: false, autoClose: true })
       .on('click', (e) => {
+        this.map.setView([data.lat, data.lng],this.map.getZoom() , { animate: false });
         console.log("clicked calibrationpoint: ", e.target);
         e.target.openPopup();
+        setTimeout(() => {
+          document.getElementById('delete-cp')?.addEventListener("click", () => {
+            this.http.delete(`${this.cpURL}/${data.id}`, { responseType: 'text' }).subscribe(
+              response => {
+                this.map.removeLayer(e.target);
+                console.log(response); 
+                //TODO: add toast
+              }
+            );
+          });
+        }, 0);
         data.fingerprints[0].accessPoints.forEach((x: any) => {
-          const accessPointCircle = L.circle([x.lat, x.lng], 0.5, { color: 'blue', fillOpacity: 1 }).addTo(this.map);
+          const accessPointCircle = L.circle([x.lat, x.lng], 0.5, { color: 'blue', fillOpacity: 1 }).addTo(this.map).bindTooltip(`Accesspoint: ${x.bssid}`);
           this.accessPointCircles.push(accessPointCircle);
         });
       })
       .on('popupclose', () => {
         this.accessPointCircles.forEach((accessCircle) => { 
+          //this.map.setView([data.lat, data.lng],20 , { animate: false });
           this.map.removeLayer(accessCircle);
         });
         this.accessPointCircles = [];
@@ -216,7 +258,12 @@ export class HomePage implements OnInit {
   }
 
   centerView() {
-    this.map.setView(this.centerLatLng, 19);
+    if(this.currentPolygon) {
+      this.buildings.filter((x: any) => this.selectedBuilding === x.name.replace(/\s/g, '')).forEach((data: any) => {
+        this.map.setView(data.shell.points[0], 20);
+      });
+    }
+    else this.map.setView(this.centerLatLng, 19);
   }
 
   closePopup(e: any) {
@@ -230,5 +277,22 @@ export class HomePage implements OnInit {
 
   getCalibrationPoints(): Observable<any> {
     return this.http.get(this.cpURL);
+  }
+
+  getAccessPoints(): Observable<any> {
+    return this.http.get(this.accessPointsURL);
+  }
+
+  addAccesspoint(): void {
+    if (this.accesspointForm.valid) {
+      const formValues = this.accesspointForm.value;
+      const accessPointData = {
+        ...formValues,
+        building: this.selectedBuilding,
+        floor: this.selectedFloor
+      };
+
+      this.http.post(this.accessPointsURL, accessPointData).subscribe();
+    }
   }
 }
