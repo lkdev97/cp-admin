@@ -374,9 +374,6 @@ export class HomePage implements OnInit {
     else this.map.setView(this.centerLatLng, 19);
   }
 
-  ///
-  ///
-  //
   addAccesspoint(): void {
     if (this.accesspointForm.valid) {
       const formValues = this.accesspointForm.value;
