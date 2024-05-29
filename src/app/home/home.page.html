@@ -58,10 +58,15 @@
           <ion-input formControlName="floor" min=0 max=4 type="number" label="Stockwerk" placeholder="{{selectedFloor}}"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-input formControlName="building" label="Gebäude" placeholder="{{selectedBuilding}}" ></ion-input>
+          <ion-label>Gebäude</ion-label>
+          <ion-select formControlName="building">
+            <ion-select-option value="A20">A20</ion-select-option>
+            <ion-select-option value="A10">A10</ion-select-option>
+            <ion-select-option value="A12">A12</ion-select-option>
+          </ion-select>
         </ion-item>
       </ion-list>
-      <ion-button type="submit" color="primary" [disabled]="!accesspointForm.valid">Add</ion-button>
+      <ion-button type="submit" color="primary" (click)="dismissModal()" [disabled]="!accesspointForm.valid">Add</ion-button>
       <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">Close</ion-button>
     </form>
   </ng-template>
