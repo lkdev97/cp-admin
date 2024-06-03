@@ -6,7 +6,7 @@ import { AccesspointValidatorService } from '../validators/accesspoint-validator
 import { BuildingService } from '../services/building.service';
 import { CalibrationpointService } from '../services/calibrationpoint.service';
 import { AccesspointService } from '../services/accesspoint.service';
-import { CalibrationPoint, Fingerprint } from '../models/calibrationpoint';
+import { CalibrationPoint, Fingerprint, WifiData } from '../models/calibrationpoint';
 import { AccessPoint } from '../models/accesspoint';
 
 @Component({
@@ -184,7 +184,17 @@ export class HomePage implements OnInit {
         //TODO: Add Calibrationpoint => POST /cpURL
         setTimeout(() => {
           document.getElementById("addCpBtn")?.addEventListener("click", () => {
-            const newCalibrationPoint: CalibrationPoint[] = [this._calibrationPointService.buildCalibrationPoint(e.latlng.lat, e.latlng.lng, this.selectedFloor, this.selectedBuilding, [this._calibrationPointService.buildFingerprint(0.9, [], this.accessPoints.filter((x: any) => x.floor.toString() === this.selectedFloor.toString()).map(({ id, building, ...rest }) => ({ ...rest })))])];
+            const filterAccesspoints = this.accessPoints.filter((x: any) => x.floor.toString() === this.selectedFloor.toString()).map(({ id, building, ...rest }) => ({ ...rest }))
+            const WifiData: WifiData[] = [];
+            filterAccesspoints.forEach(filterAccesspoint => {
+              WifiData.push(this._calibrationPointService.buildWifiData(filterAccesspoint.bssid, 0, 0, 0));
+            });
+            const newCalibrationPoint: CalibrationPoint[] = [this._calibrationPointService.buildCalibrationPoint(e.latlng.lat, e.latlng.lng, this.selectedFloor, this.selectedBuilding, [
+                              this._calibrationPointService.buildFingerprint(360, WifiData, filterAccesspoints), 
+                              this._calibrationPointService.buildFingerprint(180, WifiData, filterAccesspoints),
+                              this._calibrationPointService.buildFingerprint(90, WifiData, filterAccesspoints),
+                              this._calibrationPointService.buildFingerprint(0, WifiData, filterAccesspoints)])];
+            //newCalibrationPoint[0].
             console.log("newCalibrationPoint ", newCalibrationPoint);
             this._calibrationPointService.addCalibrationPoint(newCalibrationPoint).subscribe(
               response => {
