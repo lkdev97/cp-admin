@@ -16,14 +16,17 @@
       <ion-button id="add-accesspoint">
         <ion-icon name="add-outline"></ion-icon>
       </ion-button>
-      <ion-button>
+      <!-- <ion-button>
         <ion-icon name="chevron-down-outline"></ion-icon>
       </ion-button>
       <ion-button>
         <ion-icon name="folder-open-outline"></ion-icon>
-      </ion-button>
+      </ion-button> -->
       <ion-button id="list-cp">
         <ion-icon name="reader-outline"></ion-icon>
+      </ion-button>
+      <ion-button id="list-ap">
+        <ion-icon name="wifi-outline"></ion-icon>
       </ion-button>
       <ion-button (click)="clearRooms()">
         <ion-icon slot="icon-only" name="exit-outline"></ion-icon>
@@ -73,6 +76,25 @@
 </ion-modal>
 
 
+<ion-modal trigger="list-ap">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+        <ion-title>Accesspoints</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-list *ngFor="let accessPoint of accessPoints">
+        <ion-item>
+          <p>BSSID: {{accessPoint.bssid}}<br>Latitude: {{accessPoint.lat}}<br>Longitude: {{accessPoint.lng}} <br>Floor: {{accessPoint.floor}}</p>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
 
 <ion-modal trigger="list-cp">
   <ng-template>
