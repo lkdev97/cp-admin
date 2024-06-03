@@ -6,6 +6,8 @@ import { AccesspointValidatorService } from '../validators/accesspoint-validator
 import { BuildingService } from '../services/building.service';
 import { CalibrationpointService } from '../services/calibrationpoint.service';
 import { AccesspointService } from '../services/accesspoint.service';
+import { CalibrationPoint, Fingerprint } from '../models/calibrationpoint';
+import { AccessPoint } from '../models/accesspoint';
 
 @Component({
   selector: 'app-home',
@@ -26,6 +28,7 @@ export class HomePage implements OnInit {
   selectedFloor: String = '';
   calibrationPoints: any[] = [];
   accesspointForm: FormGroup;
+  accessPoints: any[] = [];
   
 
   constructor(private modalController: ModalController, 
@@ -122,7 +125,8 @@ export class HomePage implements OnInit {
   
     //L.icon({ iconUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon.png'}).createIcon()
     this.removeAccessPoints();
-    this._accessPointService.getAccessPoints().subscribe((accessPoints: any) => {
+    this._accessPointService.getAccessPoints().subscribe((accessPoints: AccessPoint[]) => {
+      this.accessPoints = accessPoints; // TODO: 
       const filteredAccessPoints = accessPoints.filter((x: any) => x.floor == this.selectedFloor && x.building == this.selectedBuilding);
       filteredAccessPoints.forEach((filteredAccessPoint: any) => {
         //const accessPointCirle = L.circle([filteredAccessPoint.lat, filteredAccessPoint.lng], 0.5, { color: 'orange', className: 'circle red hidden', attribution: "stroke=red"}).addTo(this.map).bindTooltip(`Accesspoint: ${filteredAccessPoint.bssid}`);
@@ -180,49 +184,8 @@ export class HomePage implements OnInit {
         //TODO: Add Calibrationpoint => POST /cpURL
         setTimeout(() => {
           document.getElementById("addCpBtn")?.addEventListener("click", () => {
-            const newCalibrationPoint = [
-              {
-                lat: e.latlng.lat,
-                lng: e.latlng.lng,
-                floor: this.selectedFloor,
-                //timeWhenAddedInMs: 1491981626491,
-                building: this.selectedBuilding,
-                fingerprints: [
-                  {
-                    //id: 0,
-                    azimuthInDegrees: 0.918853759765625,
-                    wifiData: [
-                      /*{
-                        //id: 0,
-                        //calibrationPointId: 0,
-                        bssid: 'bc:f2:af:ed:51:ef',
-                        frequency: 5180,
-                        level: -43,
-                        timestamp: 0
-                      },
-                      {
-                        //id: 0,
-                        //calibrationPointId: 0,
-                        bssid: 'f4:06:8d:4e:82:e0',
-                        frequency: 5200,
-                        level: -51,
-                        timestamp: 0
-                      }*/
-                    ],
-                    accessPoints: [
-                      /*{
-                        bssid: 'bc:f2:af:ed:51:ef',
-                        ssid: 'MoCaPos',
-                        lat: e.latlng.lat,
-                        lng: e.latlng.lng,
-                        floor: this.selectedFloor,
-                        description: 'Hinter der Tafel'
-                      }*/
-                    ]
-                  }
-                ]
-              }
-            ];
+            const newCalibrationPoint: CalibrationPoint[] = [this._calibrationPointService.buildCalibrationPoint(e.latlng.lat, e.latlng.lng, this.selectedFloor, this.selectedBuilding, [this._calibrationPointService.buildFingerprint(0.9, [], this.accessPoints.filter((x: any) => x.floor.toString() === this.selectedFloor.toString()).map(({ id, building, ...rest }) => ({ ...rest })))])];
+            console.log("newCalibrationPoint ", newCalibrationPoint);
             this._calibrationPointService.addCalibrationPoint(newCalibrationPoint).subscribe(
               response => {
                 console.log('Calibration point added successfully:', response);
@@ -253,11 +216,13 @@ export class HomePage implements OnInit {
     this.calibrationPoints = calibrationPoints.filter((x: any) => x.floor === selectedLevel);
     console.log(this.calibrationPoints);
     calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
-      let color = '';
-      if(data.fingerprints[0].accessPoints.length == 0) color = 'grey';
-      else if(data.fingerprints[0].accessPoints.length <= 2) color = 'red';
-      else if(data.fingerprints[0].accessPoints.length <= 3) color = 'yellow';
-      else color = 'green';
+      let color = 'grey';
+      if (data.fingerprints && data.fingerprints.length > 0) { 
+        if(data.fingerprints[0].accessPoints.length == 0) color = 'grey';
+        else if(data.fingerprints[0].accessPoints.length <= 2) color = 'red';
+        else if(data.fingerprints[0].accessPoints.length <= 3) color = 'yellow';
+        else color = 'green';
+      } 
 
       const circle = L.circle([data.lat, data.lng], 0.5, { color: color, fillOpacity: 1 })
       .addTo(this.map)
@@ -269,8 +234,27 @@ export class HomePage implements OnInit {
         e.target.openPopup();
         setTimeout(() => {
           document.getElementById('edit-cp')?.addEventListener("click", () => {
+            const editCP = this.calibrationPoints.find(cp => cp.id === data.id);
+            /*const filterAccesspoints = this.accessPoints.filter((x: any) => x.floor.toString() === this.selectedFloor.toString()).map(({ id, building, ...rest }: { id: any, building: any, [key: string]: any }) => ({ ...rest }));
+            filterAccesspoints.forEach((filterAccesspoint: any) => { 
+              this._calibrationPointService.addAccessPoint(editCP, filterAccesspoint, 0);
+            });*/
+            //this._calibrationPointService.addAccessPoint(editCP, this._accessPointService.buildAccessPoint(this.accessPoints[0].bssid, this.accessPoints[0].ssid, this.accessPoints[0].lat, this.accessPoints[0].lng, this.accessPoints[0].floor, this.accessPoints[0].description), 0);
+            this._calibrationPointService.editCalibrationPoint(data.id, editCP).subscribe(
+              response => {
+                console.log(response); // Toast
+                this._calibrationPointService.getCalibrationPoints().subscribe((cp: CalibrationPoint) => {
+                  e.target.closePopup();
+                  this.removeCalibrationPoints();
+                  this.drawCalibrationPoints(selectedLevel, cp);
+                  //this.currentPolygon?.closePopup();
+                });
+              }
+            );
             //TODO: ngx-modal-dialog, modalcontroller
             console.log("edit cp");
+            
+        
           });
           document.getElementById('delete-cp')?.addEventListener("click", () => {
             this._calibrationPointService.removeCalibrationPoint(data.id).subscribe(
@@ -282,12 +266,14 @@ export class HomePage implements OnInit {
             );
           });
         }, 0);
-        data.fingerprints[0].accessPoints.forEach((x: any) => {
-          //this.drawAccessPoint([x.lat, x.lng], x.bssid); //TODO
-          //this.selectedAccessPointMarkers.push(this.drawAccessPoint([x.lat, x.lng], x.bssid)); 
-          const accessPointCircle = L.circle([x.lat, x.lng], 0.5, { color: 'blue', fillOpacity: 1 }).addTo(this.map).bindTooltip(`Accesspoint: ${x.bssid}`);
-          this.selectedAccessPointCircles.push(accessPointCircle);
-        });
+        if (data.fingerprints && data.fingerprints.length > 0) {
+          data.fingerprints[0].accessPoints.forEach((x: any) => {
+            this.selectedAccessPointCircles.push(this.drawAccessPoint([x.lat, x.lng], x.bssid)); //TODO
+            //this.selectedAccessPointMarkers.push(this.drawAccessPoint([x.lat, x.lng], x.bssid)); 
+            const accessPointCircle = L.circle([x.lat, x.lng], 0.5, { color: 'rgba(99, 197, 199, 0.8)', fillOpacity: 1 }).addTo(this.map).bindTooltip(`Accesspoint: ${x.bssid}`);
+            this.selectedAccessPointCircles.push(accessPointCircle);
+          });
+        }
       })
       .on('popupclose', () => { //TODO: rm active accessPoints
         this.selectedAccessPointCircles.forEach((accessCircle) => { 
