@@ -184,10 +184,10 @@ export class HomePage implements OnInit {
         //TODO: Add Calibrationpoint => POST /cpURL
         setTimeout(() => {
           document.getElementById("addCpBtn")?.addEventListener("click", () => {
-            const filterAccesspoints = this.accessPoints.filter((x: any) => x.floor.toString() === this.selectedFloor.toString()).map(({ id, building, ...rest }) => ({ ...rest }));
+            const filterAccesspoints = this.accessPoints.filter((x: AccessPoint) => x.floor.toString() === this.selectedFloor.toString()).map(({ id, building, ...rest }) => ({ ...rest }));
             const WifiData: WifiData[] = [];
             filterAccesspoints.forEach(filterAccesspoint => {
-              WifiData.push(this._calibrationPointService.buildWifiData(filterAccesspoint.bssid, 0, 0, 0));
+              WifiData.push(this._calibrationPointService.buildWifiData(filterAccesspoint.bssid, 2472, 0, 0));
             });
             const newCalibrationPoint: CalibrationPoint[] = [this._calibrationPointService.buildCalibrationPoint(e.latlng.lat, e.latlng.lng, this.selectedFloor, this.selectedBuilding, [
                               this._calibrationPointService.buildFingerprint(360, WifiData, filterAccesspoints), 
