@@ -40,11 +40,20 @@ export class CalibrationpointService {
     };
   }
 
-  buildFingerprint(azimuthInDegrees: number, wifiData: WifiData[], accessPoints: AccessPoint[]) {
+  buildFingerprint(azimuthInDegrees: number, wifiData: WifiData[], accessPoints: AccessPoint[]): Fingerprint {
     return {
       azimuthInDegrees,
       wifiData,
       accessPoints
+    }
+  }
+
+  buildWifiData(bssid: String, frequency: number, level: number, timestamp: number): WifiData {
+    return {
+      bssid,
+      frequency,
+      level,
+      timestamp
     }
   }
 
