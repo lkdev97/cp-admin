@@ -3,7 +3,10 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  accessPointService: "http://localhost:3000",
+  calibrationPointService: "http://localhost:32811",
+  buildingService: "http://localhost:32800/api/v2"
 };
 
 /*
