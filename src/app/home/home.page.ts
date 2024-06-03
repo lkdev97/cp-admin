@@ -303,12 +303,19 @@ export class HomePage implements OnInit {
     if (!floorButtonsContainer) return;
 
     floorButtonsContainer.innerHTML = '';
+    this.selectedFloor = "0";
     building.levels.forEach((level: any, index: number) => {
       const button = document.createElement('ion-button');
-      button.setAttribute("id", `${index}`);
+      button.setAttribute("class", "select-btn");
+      level.level == this.selectedFloor ? button.setAttribute("color", "primary") : button.setAttribute("color", "dark");
       level.level >= 0 ? button.innerText = `OG ${level.level}` : button.innerText = `UG ${Math.abs(level.level)}`;
       button.addEventListener('click', () => {
         console.log(`Floor ${index}`);
+        const selectBtns = document.querySelectorAll('.select-btn'); 
+        selectBtns.forEach((floorButton: Element) => { 
+          floorButton.setAttribute("color", "dark");
+        });
+        button.setAttribute("color", "primary");
         this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoint: any) => {
           this.selectedFloor = level.level;
           this.selectedBuilding = building.name.replace(/\s/g, '');
