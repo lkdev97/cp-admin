@@ -1,19 +1,11 @@
 import { AccessPoint } from "./accesspoint";
 
-export class CalibrationPoint {
+export interface CalibrationPoint {
     lat: number;
     lng: number;
     floor: String;
     building: String;
     fingerprints: Fingerprint[];
-    
-    constructor(lat: number, lng: number, floor: String, building: String, fingerprints: Fingerprint[]) {
-        this.lat = lat;
-        this.lng = lng;
-        this.floor = floor;
-        this.building = building;
-        this.fingerprints = fingerprints;
-    }
     
 }
   
