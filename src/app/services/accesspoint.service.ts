@@ -32,4 +32,8 @@ export class AccesspointService {
       //building
     };
   }
+
+  filterAccessPointsByFloor(accessPoints: any, floorLevel: String): AccessPoint[] {
+    return accessPoints.filter((x: AccessPoint) => x.floor.toString() === floorLevel.toString()).map(({ id, building, ...rest }: { id: any, building: any, [key: string]: any }) => ({ ...rest }));
+  }
 }
