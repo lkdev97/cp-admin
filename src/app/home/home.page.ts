@@ -190,10 +190,10 @@ export class HomePage implements OnInit {
               WifiData.push(this._calibrationPointService.buildWifiData(filterAccesspoint.bssid, 2472, 0, 0));
             });
             const newCalibrationPoint: CalibrationPoint[] = [this._calibrationPointService.buildCalibrationPoint(e.latlng.lat, e.latlng.lng, this.selectedFloor, this.selectedBuilding, [
-                              this._calibrationPointService.buildFingerprint(360, WifiData, filterAccesspoints), 
-                              this._calibrationPointService.buildFingerprint(180, WifiData, filterAccesspoints),
+                              this._calibrationPointService.buildFingerprint(0, WifiData, filterAccesspoints), 
                               this._calibrationPointService.buildFingerprint(90, WifiData, filterAccesspoints),
-                              this._calibrationPointService.buildFingerprint(0, WifiData, filterAccesspoints)])];
+                              this._calibrationPointService.buildFingerprint(180, WifiData, filterAccesspoints),
+                              this._calibrationPointService.buildFingerprint(270, WifiData, filterAccesspoints)])];
             //newCalibrationPoint[0].
             console.log("newCalibrationPoint ", newCalibrationPoint);
             this._calibrationPointService.addCalibrationPoint(newCalibrationPoint).subscribe(
