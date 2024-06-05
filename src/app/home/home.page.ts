@@ -246,7 +246,7 @@ export class HomePage implements OnInit {
                 this._calibrationPointService.addAccessPoint(editCP, accesspoint, i); 
               })
             }
-            this._calibrationPointService.editCalibrationPoint(data.id, editCP).subscribe(
+            this._calibrationPointService.editCalibrationPoint(editCP).subscribe(
               response => {
                 console.log(response); // TODO: add success Toast
                 this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: CalibrationPoint) => {
@@ -383,7 +383,7 @@ export class HomePage implements OnInit {
           for (let i = 0; i < calibrationPoint.fingerprints.length; i++) {
             this._calibrationPointService.addAccessPoint(calibrationPoint, accessPointData, i);
           }
-          this._calibrationPointService.editCalibrationPoint(cp.id, cp).subscribe();
+          this._calibrationPointService.editCalibrationPoint(calibrationPoint).subscribe();
         });
 
         this.removeCalibrationPoints();
