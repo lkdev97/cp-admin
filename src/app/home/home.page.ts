@@ -216,7 +216,7 @@ export class HomePage implements OnInit {
 
   drawCalibrationPoints(selectedLevel: number, calibrationPoints: any): void {
     this.removeCalibrationPoints();
-    this.calibrationPoints = calibrationPoints.filter((x: any) => x.floor === selectedLevel);
+    this.calibrationPoints = calibrationPoints.filter((x: any) => x.floor === selectedLevel && x.building.includes(this.selectedBuilding));
     console.log(this.calibrationPoints);
     this.calibrationPoints.forEach((data: any) => {
       let color = 'grey';
