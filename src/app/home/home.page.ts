@@ -218,7 +218,7 @@ export class HomePage implements OnInit {
     this.removeCalibrationPoints();
     this.calibrationPoints = calibrationPoints.filter((x: any) => x.floor === selectedLevel);
     console.log(this.calibrationPoints);
-    calibrationPoints.filter((x: any) => x.floor === selectedLevel).forEach((data: any) => {
+    this.calibrationPoints.forEach((data: any) => {
       let color = 'grey';
       if (data.fingerprints && data.fingerprints.length > 0) { 
         if(data.fingerprints[0].accessPoints.length == 0) color = 'grey';
@@ -379,7 +379,7 @@ export class HomePage implements OnInit {
 
       this._accessPointService.addAccesspoint(accessPointData).subscribe(() => { //TODO: test if working and if needed @add new accesspoint to all calibrationpoints on same floor
         delete accessPointData.building;
-        this.calibrationPoints.filter((x: any) => x.floor === this.selectedFloor && x.building === this.selectedBuilding).forEach((cp: any) => {
+        this.calibrationPoints.forEach((cp: any) => {
           for (let i = 0; i < cp.fingerprints.length; i++) {
             this._calibrationPointService.addAccessPoint(cp, accessPointData, i);
           }
