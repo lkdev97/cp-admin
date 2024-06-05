@@ -377,19 +377,26 @@ export class HomePage implements OnInit {
         ...formValues,
       };
 
-      this._accessPointService.addAccesspoint(accessPointData).subscribe(() => { //TODO: test if working and if needed @add new accesspoint to all calibrationpoints on same floor
-        delete accessPointData.building;
-        this.calibrationPoints.forEach((calibrationPoint: any) => {
-          for (let i = 0; i < calibrationPoint.fingerprints.length; i++) {
-            this._calibrationPointService.addAccessPoint(calibrationPoint, accessPointData, i);
-          }
-          this._calibrationPointService.editCalibrationPoint(calibrationPoint).subscribe();
-        });
+      this._accessPointService.addAccesspoint(accessPointData).subscribe(
+        response => { //TODO: test if working and if needed @add new accesspoint to all calibrationpoints on same floor
+          delete accessPointData.building;
+          this.calibrationPoints.forEach((calibrationPoint: any) => {
+            for (let i = 0; i < calibrationPoint.fingerprints.length; i++) {
+              this._calibrationPointService.addAccessPoint(calibrationPoint, accessPointData, i);
+            }
+            this._calibrationPointService.editCalibrationPoint(calibrationPoint).subscribe();
+          });      
 
-        this.removeCalibrationPoints();
-        this.drawCalibrationPoints(formValues.floor, this.calibrationPoints);
-        this.drawAccessPoints();
-      });
+          this.removeCalibrationPoints();
+          this.drawCalibrationPoints(formValues.floor, this.calibrationPoints);
+          this.drawAccessPoints();
+          this.dismissModal();
+          alert(`SUCCESS: ${response}`); // TODO: add toast here instead of alert
+        }, 
+        error => {
+          alert(`ERROR: ${error.error}`); // TODO: add toast here instead of alert
+        }
+      );
     }
   }
 }
