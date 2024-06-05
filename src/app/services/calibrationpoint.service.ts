@@ -26,8 +26,8 @@ export class CalibrationpointService {
     return this._http.delete(`${this.calibrationPointURL}/${calibrationPointID}`, { responseType: 'text' });
   }
 
-  editCalibrationPoint(calibrationPointID: number, calibrationPointData: any): Observable<any> {
-    return this._http.put(`${this.calibrationPointURL}/${calibrationPointID}`, calibrationPointData, { responseType: 'text' })
+  editCalibrationPoint(calibrationPointData: any): Observable<any> {
+    return this._http.put(`${this.calibrationPointURL}/${calibrationPointData.id}`, calibrationPointData, { responseType: 'text' })
   }
 
   buildCalibrationPoint(lat: number, lng: number, floor: String, building: String, fingerprint: Fingerprint[]): CalibrationPoint {
