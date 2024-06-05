@@ -69,11 +69,11 @@ export class HomePage implements OnInit {
                   console.log(`clicked on building ${building.name}`);
                   console.log(`Building: "${building.levels}`);
                   this.loadFloorButtons(building);
-                  this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoint: any) => {
+                  this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: any) => {
                     this.selectedFloor = "0";
                     this.selectedBuilding = building.name.replace(/\s/g, '');
                     this.drawRooms(building, 0); 
-                    this.drawCalibrationPoints(0, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(this.selectedBuilding)));
+                    this.drawCalibrationPoints(0, calibrationPoints);
                     this.drawAccessPoints();
                   });
                 })
@@ -192,9 +192,9 @@ export class HomePage implements OnInit {
             this._calibrationPointService.addCalibrationPoint(newCalibrationPoint).subscribe(
               response => {
                 console.log('Calibration point added successfully:', response);
-                this._calibrationPointService.getCalibrationPoints().subscribe((cp: any) => {
+                this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: any) => {
                   this.removeCalibrationPoints();
-                  this.drawCalibrationPoints(selectedLevel, cp);
+                  this.drawCalibrationPoints(selectedLevel, calibrationPoints);
                   this.currentPolygon?.closePopup();
                 });
                 //TODO: add toast 
@@ -249,10 +249,10 @@ export class HomePage implements OnInit {
             this._calibrationPointService.editCalibrationPoint(data.id, editCP).subscribe(
               response => {
                 console.log(response); // TODO: add success Toast
-                this._calibrationPointService.getCalibrationPoints().subscribe((cp: CalibrationPoint) => {
+                this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: CalibrationPoint) => {
                   e.target.closePopup();
                   this.removeCalibrationPoints();
-                  this.drawCalibrationPoints(selectedLevel, cp);
+                  this.drawCalibrationPoints(selectedLevel, calibrationPoints);
                 });
               }
             );
@@ -308,11 +308,11 @@ export class HomePage implements OnInit {
           floorButton.setAttribute("color", "dark");
         });
         button.setAttribute("color", "primary");
-        this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoint: any) => {
+        this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: any) => {
           this.selectedFloor = level.level;
           this.selectedBuilding = building.name.replace(/\s/g, '');
           this.drawRooms(building, level.level);
-          this.drawCalibrationPoints(level.level, calibrationPoint.filter((calibrationPoint: any) => calibrationPoint.building.includes(this.selectedBuilding)));
+          this.drawCalibrationPoints(level.level, calibrationPoints);
           this.drawAccessPoints();
         });
         
@@ -379,9 +379,9 @@ export class HomePage implements OnInit {
 
       this._accessPointService.addAccesspoint(accessPointData).subscribe(() => { //TODO: test if working and if needed @add new accesspoint to all calibrationpoints on same floor
         delete accessPointData.building;
-        this.calibrationPoints.forEach((cp: any) => {
-          for (let i = 0; i < cp.fingerprints.length; i++) {
-            this._calibrationPointService.addAccessPoint(cp, accessPointData, i);
+        this.calibrationPoints.forEach((calibrationPoint: any) => {
+          for (let i = 0; i < calibrationPoint.fingerprints.length; i++) {
+            this._calibrationPointService.addAccessPoint(calibrationPoint, accessPointData, i);
           }
           this._calibrationPointService.editCalibrationPoint(cp.id, cp).subscribe();
         });
