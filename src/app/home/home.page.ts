@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import * as L from 'leaflet';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AccesspointValidatorService } from '../validators/accesspoint-validator.service';
 import { BuildingService } from '../services/building.service';
@@ -32,6 +32,7 @@ export class HomePage implements OnInit {
   
 
   constructor(private modalController: ModalController, 
+    private toastController: ToastController,
     private fb: FormBuilder, 
     private _buildingService: BuildingService, 
     private _accessPointService: AccesspointService,
@@ -186,14 +187,14 @@ export class HomePage implements OnInit {
             const newCalibrationPoint: CalibrationPoint[] = [this._calibrationPointService.buildCalibrationPoint(e.latlng.lat, e.latlng.lng, this.selectedFloor, this.selectedBuilding, [])];
             console.log("newCalibrationPoint ", newCalibrationPoint);
             this._calibrationPointService.addCalibrationPoint(newCalibrationPoint).subscribe(
-              response => {
+              async response => {
                 console.log('Calibration point added successfully:', response);
                 this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: any) => {
                   this.removeCalibrationPoints();
                   this.drawCalibrationPoints(selectedLevel, calibrationPoints);
                   this.currentPolygon?.closePopup();
                 });
-                //TODO: add toast 
+                await this.showToast('Calibration point added successfully');
               },
               error => {
                 console.error('Error adding calibration point:', error);
@@ -241,7 +242,7 @@ export class HomePage implements OnInit {
               response => {
                 this.map.removeLayer(e.target);
                 console.log(response); 
-                //TODO: add toast
+                this.showToast(`Calibrationpoint with ID: ${data.id} deleted`)
               }
             );
           });
@@ -353,25 +354,23 @@ export class HomePage implements OnInit {
       };
 
       this._accessPointService.addAccesspoint(accessPointData).subscribe(
-        response => { //TODO: test if working and if needed @add new accesspoint to all calibrationpoints on same floor
-          delete accessPointData.building;
-          this.calibrationPoints.forEach((calibrationPoint: any) => {
-            for (let i = 0; i < calibrationPoint.fingerprints.length; i++) {
-              this._calibrationPointService.addAccessPoint(calibrationPoint, accessPointData, i);
-            }
-            this._calibrationPointService.editCalibrationPoint(calibrationPoint).subscribe();
-          });      
-
+        response => { 
+          this.showToast(`SUCCESS: ${response}`);          
           this.removeCalibrationPoints();
           this.drawCalibrationPoints(formValues.floor, this.calibrationPoints);
           this.drawAccessPoints();
-          this.dismissModal();
-          alert(`SUCCESS: ${response}`); // TODO: add toast here instead of alert
         }, 
         error => {
-          alert(`ERROR: ${error.error}`); // TODO: add toast here instead of alert
+          this.showToast(`ERROR: ${error.error}`); 
         }
       );
     }
+  }
+  async showToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+    });
+    toast.present();
   }
 }
