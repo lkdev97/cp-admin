@@ -194,7 +194,7 @@ export class HomePage implements OnInit {
                   this.drawCalibrationPoints(selectedLevel, calibrationPoints);
                   this.currentPolygon?.closePopup();
                 });
-                await this.showToast('Calibration point added successfully');
+                await this.showToast('Calibration point added successfully', 'success');
               },
               error => {
                 console.error('Error adding calibration point:', error);
@@ -242,7 +242,7 @@ export class HomePage implements OnInit {
               response => {
                 this.map.removeLayer(e.target);
                 console.log(response); 
-                this.showToast(`Calibrationpoint with ID: ${data.id} deleted`)
+                this.showToast(`Calibrationpoint with ID: ${data.id} deleted`, 'fail')
               }
             );
           });
@@ -355,21 +355,23 @@ export class HomePage implements OnInit {
 
       this._accessPointService.addAccesspoint(accessPointData).subscribe(
         response => { 
-          this.showToast(`SUCCESS: ${response}`);          
+          this.showToast(`${response}`, 'success');          
           this.removeCalibrationPoints();
           this.drawCalibrationPoints(formValues.floor, this.calibrationPoints);
           this.drawAccessPoints();
         }, 
         error => {
-          this.showToast(`ERROR: ${error.error}`); 
+          this.showToast(`${error.error}`, 'fail'); 
         }
       );
     }
   }
-  async showToast(message: string) {
+  async showToast(message: string, type: 'success' | 'fail') {
     const toast = await this.toastController.create({
       message: message,
       duration: 3000,
+      position: 'bottom',
+      color: type === 'success' ? 'success' : 'danger',
     });
     toast.present();
   }
