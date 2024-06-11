@@ -183,11 +183,7 @@ export class HomePage implements OnInit {
             filterAccesspoints.forEach((filterAccesspoint: AccessPoint) => {
               WifiData.push(this._calibrationPointService.buildWifiData(filterAccesspoint.bssid, 2472, 0, 0));
             });
-            const newCalibrationPoint: CalibrationPoint[] = [this._calibrationPointService.buildCalibrationPoint(e.latlng.lat, e.latlng.lng, this.selectedFloor, this.selectedBuilding, [
-                              this._calibrationPointService.buildFingerprint(0, WifiData, filterAccesspoints), 
-                              this._calibrationPointService.buildFingerprint(90, WifiData, filterAccesspoints),
-                              this._calibrationPointService.buildFingerprint(180, WifiData, filterAccesspoints),
-                              this._calibrationPointService.buildFingerprint(270, WifiData, filterAccesspoints)])];
+            const newCalibrationPoint: CalibrationPoint[] = [this._calibrationPointService.buildCalibrationPoint(e.latlng.lat, e.latlng.lng, this.selectedFloor, this.selectedBuilding, [])];
             console.log("newCalibrationPoint ", newCalibrationPoint);
             this._calibrationPointService.addCalibrationPoint(newCalibrationPoint).subscribe(
               response => {
@@ -226,40 +222,19 @@ export class HomePage implements OnInit {
         else if(data.fingerprints[0].accessPoints.length <= 3) color = 'yellow';
         else color = 'green';
       } 
-
+      const accessPointsCount = (data.fingerprints && data.fingerprints.length > 0 && data.fingerprints[0].accessPoints && data.fingerprints[0].accessPoints.length > 0) ? data.fingerprints[0].accessPoints.length : 0;
       const circle = L.circle([data.lat, data.lng], 0.5, { color: color, fillOpacity: 1 })
       .addTo(this.map)
-      .bindTooltip(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${data.fingerprints[0].accessPoints.length}`)
-      .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${data.fingerprints[0].accessPoints.length}<br> <ion-button id="edit-cp" fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button id="delete-cp" fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`, { closeOnClick: false, autoClose: true })
+      .bindTooltip(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${accessPointsCount}`)
+      .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${accessPointsCount}<br> <ion-button id="edit-cp" fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button id="delete-cp" fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`, { closeOnClick: false, autoClose: true })
       .on('click', (e) => {
         this.map.setView([data.lat, data.lng],this.map.getZoom() , { animate: false });
         console.log("clicked calibrationpoint: ", e.target);
         e.target.openPopup();
         setTimeout(() => {
           document.getElementById('edit-cp')?.addEventListener("click", () => {
-            const editCP = this.calibrationPoints.find(cp => cp.id === data.id);
-            const newAccessPoints = this._accessPointService.filterAccessPoints(this.accessPoints, this.selectedFloor, this.selectedBuilding).filter(filterAccesspoints => 
-              !editCP.fingerprints[0].accessPoints.some((existingAP: AccessPoint) => existingAP.bssid === filterAccesspoints.bssid)
-            );
-            for (let i = 0; i < editCP.fingerprints.length; i++) {
-              newAccessPoints.forEach((accesspoint: AccessPoint) => {
-                this._calibrationPointService.addAccessPoint(editCP, accesspoint, i); 
-              })
-            }
-            this._calibrationPointService.editCalibrationPoint(editCP).subscribe(
-              response => {
-                console.log(response); // TODO: add success Toast
-                this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: CalibrationPoint) => {
-                  e.target.closePopup();
-                  this.removeCalibrationPoints();
-                  this.drawCalibrationPoints(selectedLevel, calibrationPoints);
-                });
-              }
-            );
-            //TODO: ngx-modal-dialog, modalcontroller
-            console.log("edit cp");
-            
-        
+            alert("start scan for accesspoints.... ");
+            //@TODO: add scan here - scan for accesspoints "in range" with min signal strength of 80
           });
           document.getElementById('delete-cp')?.addEventListener("click", () => {
             this._calibrationPointService.removeCalibrationPoint(data.id).subscribe(
