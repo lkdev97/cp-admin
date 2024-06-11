@@ -4,9 +4,9 @@
 
 export const environment = {
   production: false,
-  accessPointService: "http://localhost:3000",
-  calibrationPointService: "http://localhost:32811",
-  buildingService: "http://localhost:32800/api/v2"
+  accessPointService: "http://192.168.178.23:3000",
+  calibrationPointService: "http://192.168.178.23:32811",
+  buildingService: "http://192.168.178.23:32800/api/v2"
 };
 
 /*
