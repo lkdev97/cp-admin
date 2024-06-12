@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import * as L from 'leaflet';
-import { ModalController, ToastController } from '@ionic/angular';
+import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AccesspointValidatorService } from '../validators/accesspoint-validator.service';
 import { BuildingService } from '../services/building.service';
@@ -33,6 +33,7 @@ export class HomePage implements OnInit {
 
   constructor(private modalController: ModalController, 
     private toastController: ToastController,
+    private alertController: AlertController,
     private fb: FormBuilder, 
     private _buildingService: BuildingService, 
     private _accessPointService: AccesspointService,
@@ -194,6 +195,7 @@ export class HomePage implements OnInit {
                   this.drawCalibrationPoints(selectedLevel, calibrationPoints);
                   this.currentPolygon?.closePopup();
                 });
+                this.presentScanAlert(newCalibrationPoint[0]);
                 await this.showToast('Calibration point added successfully', 'success');
               },
               error => {
@@ -234,7 +236,7 @@ export class HomePage implements OnInit {
         e.target.openPopup();
         setTimeout(() => {
           document.getElementById('edit-cp')?.addEventListener("click", () => {
-            alert("start scan for accesspoints.... ");
+            this.scanAccesspoints(e.target);
             //@TODO: add scan here - scan for accesspoints "in range" with min signal strength of 80
           });
           document.getElementById('delete-cp')?.addEventListener("click", () => {
@@ -374,5 +376,27 @@ export class HomePage implements OnInit {
       color: type === 'success' ? 'success' : 'danger',
     });
     toast.present();
+  }
+
+  scanAccesspoints(calibrationpoint: CalibrationPoint) {
+    console.log("start scan");
+
+  }
+
+  async presentScanAlert(calibrationpoint: CalibrationPoint) {
+    const alert = await this.alertController.create({
+      header: "Scan starten",
+      message: "Möchten Sie den Scan der Accesspoints jetzt starten?",
+      buttons: [
+        {
+          text: 'Später',
+        }, {
+          text: 'Ja',
+          handler: () => this.scanAccesspoints(calibrationpoint),
+        }
+      ]
+    });
+
+    await alert.present();
   }
 }
