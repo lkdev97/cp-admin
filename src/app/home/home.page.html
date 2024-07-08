@@ -109,7 +109,7 @@
     <ion-content class="ion-padding">
       <ion-list *ngFor="let calibrationPoint of calibrationPoints">
         <ion-item>
-          <p>ID: {{calibrationPoint.id}}<br>Latitude: {{calibrationPoint.lat}}<br>Longitude: {{calibrationPoint.lng}}<br>Accesspoints: {{calibrationPoint.fingerprints[0].accessPoints.length}}</p>
+          <p>ID: {{calibrationPoint.id}}<br>Latitude: {{calibrationPoint.lat}}<br>Longitude: {{calibrationPoint.lng}}<br>Accesspoints: {{getAccessPointCount(calibrationPoint)}}</p>
         </ion-item>
       </ion-list>
     </ion-content>
