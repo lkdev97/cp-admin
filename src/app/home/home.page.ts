@@ -8,6 +8,7 @@ import { CalibrationpointService } from '../services/calibrationpoint.service';
 import { AccesspointService } from '../services/accesspoint.service';
 import { CalibrationPoint, Fingerprint, WifiData } from '../models/calibrationpoint';
 import { AccessPoint } from '../models/accesspoint';
+import { Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -34,6 +35,7 @@ export class HomePage implements OnInit {
   constructor(private modalController: ModalController, 
     private toastController: ToastController,
     private alertController: AlertController,
+    private platform: Platform,
     private fb: FormBuilder, 
     private _buildingService: BuildingService, 
     private _accessPointService: AccesspointService,
@@ -380,7 +382,20 @@ export class HomePage implements OnInit {
 
   scanAccesspoints(calibrationpoint: CalibrationPoint) {
     console.log("start scan");
-
+    if(!this.platform.is('mobile')) {
+      // show alert - that you need to be on mobile phone
+    }
+    /**
+     * TODO: ADD Scan function - implement logic
+     * 1. Security check: check if user is using app on phone/mobile - scan should be only working on mobile 
+     * 2. Positioning check: check the current positioning of the user - user should be near the Calibrationpoint
+     * 3. Azimuth check: check the current azimuth from the user  - show compass with current direction of the phone
+     * 4. Align Phone: request the user to align the phone correct - North 360° & 0°, East 90°, South 180°, West 270°
+     * 5. Scan Accesspoints: scan for every direction available accesspoints (WiFi) and check their signal strength - ss =< 80
+     * 6. Safe & continue: safe available accesspoints for this calibrationpoin/direction and continue with next direction until done
+     * 
+     * UI: Alert or Modal?
+     */
   }
 
   async presentScanAlert(calibrationpoint: CalibrationPoint) {
@@ -399,7 +414,7 @@ export class HomePage implements OnInit {
 
     await alert.present();
   }
-  
+
   getAccessPointCount(calibrationPoint: any): number {
     return calibrationPoint.fingerprints && calibrationPoint.fingerprints.length > 0 && calibrationPoint.fingerprints[0].accessPoints ? calibrationPoint.fingerprints[0].accessPoints.length: 0;
   }
