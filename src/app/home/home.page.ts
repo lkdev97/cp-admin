@@ -399,4 +399,8 @@ export class HomePage implements OnInit {
 
     await alert.present();
   }
+  
+  getAccessPointCount(calibrationPoint: any): number {
+    return calibrationPoint.fingerprints && calibrationPoint.fingerprints.length > 0 && calibrationPoint.fingerprints[0].accessPoints ? calibrationPoint.fingerprints[0].accessPoints.length: 0;
+  }
 }
