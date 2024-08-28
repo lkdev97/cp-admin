@@ -4,6 +4,9 @@
       Bachelorarbeit - Lars Köhler
     </ion-title> -->
     <ion-buttons>
+      <ion-button (click)="reloadPage()">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
       <ion-button (click)="centerView()">
         <ion-icon name="locate-outline"></ion-icon>
       </ion-button>
@@ -22,6 +25,9 @@
       <ion-button>
         <ion-icon name="folder-open-outline"></ion-icon>
       </ion-button> -->
+      <ion-button id="list-wifi">
+        <ion-icon name="radio-outline"></ion-icon>
+      </ion-button>
       <ion-button id="list-cp">
         <ion-icon name="reader-outline"></ion-icon>
       </ion-button>
@@ -75,6 +81,30 @@
   </ng-template>
 </ion-modal>
 
+
+<ion-modal trigger="list-wifi">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+        <ion-title>WiFi-Accesspoints</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-list>
+        <ion-item *ngFor="let network of networks">
+          <ion-label>
+            <p>{{ network.SSID }}</p>
+            <p>BSSID: {{ network.BSSID }}</p>
+            <p>Signalstärke: {{ network.level }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
 
 <ion-modal trigger="list-ap">
   <ng-template>

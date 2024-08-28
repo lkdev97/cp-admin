@@ -9,6 +9,7 @@ import { AccesspointService } from '../services/accesspoint.service';
 import { CalibrationPoint, Fingerprint, WifiData } from '../models/calibrationpoint';
 import { AccessPoint } from '../models/accesspoint';
 import { Platform } from '@ionic/angular';
+import { WifiWizard2 } from '@ionic-native/wifi-wizard-2/ngx';
 
 @Component({
   selector: 'app-home',
@@ -30,6 +31,7 @@ export class HomePage implements OnInit {
   calibrationPoints: any[] = [];
   accesspointForm: FormGroup;
   accessPoints: any[] = [];
+  networks: any[] = [];
   
 
   constructor(private modalController: ModalController, 
@@ -37,6 +39,7 @@ export class HomePage implements OnInit {
     private alertController: AlertController,
     private platform: Platform,
     private fb: FormBuilder, 
+    private wifiWizard: WifiWizard2,
     private _buildingService: BuildingService, 
     private _accessPointService: AccesspointService,
     private _calibrationPointService: CalibrationpointService) {
@@ -53,6 +56,20 @@ export class HomePage implements OnInit {
 
   ngOnInit() {
     this.initMap();
+    this.scanWifi();
+  }
+
+  async scanWifi() {
+    try {
+      if (this.platform.is('android') || this.platform.is('cordova')) {
+        const results = await this.wifiWizard.scan();
+        this.networks = results;
+      } else {
+        console.warn('Diese Funktion wird nur auf einem Android-Gerät unterstützt.');
+      }
+    } catch (error) {
+      console.error('Fehler beim Scannen der Netzwerke:', error);
+    }
   }
 
   ionViewDidEnter() {
@@ -417,5 +434,9 @@ export class HomePage implements OnInit {
 
   getAccessPointCount(calibrationPoint: any): number {
     return calibrationPoint.fingerprints && calibrationPoint.fingerprints.length > 0 && calibrationPoint.fingerprints[0].accessPoints ? calibrationPoint.fingerprints[0].accessPoints.length: 0;
+  }
+
+  reloadPage() {
+    window.location.reload();
   }
 }
