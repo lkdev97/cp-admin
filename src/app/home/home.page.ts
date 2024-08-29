@@ -56,12 +56,14 @@ export class HomePage implements OnInit {
 
   ngOnInit() {
     this.initMap();
-    this.scanWifi();
+    setInterval(() => {
+      this.scanWifi();
+    }, 100);
   }
 
   async scanWifi() {
     try {
-      if (this.platform.is('android') || this.platform.is('cordova')) {
+      if (this.platform.is('android')) {
         const results = await this.wifiWizard.scan();
         this.networks = results;
       } else {
