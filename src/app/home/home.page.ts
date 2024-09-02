@@ -32,6 +32,13 @@ export class HomePage implements OnInit {
   accesspointForm: FormGroup;
   accessPoints: any[] = [];
   networks: any[] = [];
+  testNetworks = [ //@TODO: remove when done testing
+    { SSID: 'TestNetwork1', bssid: '00:11:22:33:44:55', frequency: 0, level: -50 },
+    { SSID: 'TestNetwork2', bssid: '66:77:88:99:AA:BB', frequency: 0, level: -70 },
+    { SSID: 'TestNetwork3', bssid: 'CC:DD:EE:FF:00:11', frequency: 0, level: -30 },
+    { SSID: 'TestNetwork4', bssid: '22:33:44:55:66:77', frequency: 0, level: -90 },
+    { SSID: 'TestNetwork5', bssid: '88:99:AA:BB:CC:DD', frequency: 0, level: -60 }
+  ];
   
 
   constructor(private modalController: ModalController, 
@@ -56,18 +63,43 @@ export class HomePage implements OnInit {
 
   ngOnInit() {
     this.initMap();
+    this.loadAccesspoints();
+    this.loadBuildings();
     setInterval(() => {
       this.scanWifi();
     }, 100);
+  }
+
+  loadAccesspoints(): void {
+    this._accessPointService.getAccessPoints().subscribe((accessPoints: AccessPoint[]) => {
+      this.accessPoints = accessPoints;
+    });
+  }
+
+  loadBuildings(): void { 
+    this._buildingService.getBuildings().subscribe((data: any) => {
+      this.buildings = data?.buildings?.content;
+    });
   }
 
   async scanWifi() {
     try {
       if (this.platform.is('android')) {
         const results = await this.wifiWizard.scan();
-        this.networks = results;
-      } else {
-        console.warn('Diese Funktion wird nur auf einem Android-Gerät unterstützt.');
+        console.log('networks:', results);
+
+        this.networks = results.filter((network: any) => {
+          return this.accessPoints.some(ap => ap.bssid === network.BSSID);
+        }).map((network: any) => {
+          const matchingAP = this.accessPoints.find(ap => ap.bssid === network.BSSID);
+          return {
+            ...network,
+            lat: matchingAP?.lat, 
+            lng: matchingAP?.lng,
+            floor: matchingAP?.floor,
+            description: matchingAP?.description
+          };
+        });
       }
     } catch (error) {
       console.error('Fehler beim Scannen der Netzwerke:', error);
@@ -146,14 +178,14 @@ export class HomePage implements OnInit {
     });
   
     this.removeAccessPoints();
-    this._accessPointService.getAccessPoints().subscribe((accessPoints: AccessPoint[]) => {
-      this.accessPoints = accessPoints; 
-      const filteredAccessPoints = this._accessPointService.filterAccessPoints(accessPoints, this.selectedFloor, this.selectedBuilding);
+    //this._accessPointService.getAccessPoints().subscribe((accessPoints: AccessPoint[]) => {
+      //this.accessPoints = accessPoints; 
+      const filteredAccessPoints = this._accessPointService.filterAccessPoints(this.accessPoints, this.selectedFloor, this.selectedBuilding);
       filteredAccessPoints.forEach((filteredAccessPoint: any) => {
         const accessPointCircle = L.marker([filteredAccessPoint.lat, filteredAccessPoint.lng], { icon: wifiIcon }).addTo(this.map).bindTooltip(`Accesspoint: ${filteredAccessPoint.bssid}`);
         this.accessPointCircles.push(accessPointCircle);
       })
-    });
+    //});
   }
 
   drawAccessPoint(latlng: L.LatLngExpression, bssid: number): L.Marker { 
@@ -215,8 +247,8 @@ export class HomePage implements OnInit {
                   this.removeCalibrationPoints();
                   this.drawCalibrationPoints(selectedLevel, calibrationPoints);
                   this.currentPolygon?.closePopup();
+                  this.presentScanAlert(this.calibrationPoints[this.calibrationPoints.length - 1]);
                 });
-                this.presentScanAlert(newCalibrationPoint[0]);
                 await this.showToast('Calibration point added successfully', 'success');
               },
               error => {
@@ -257,8 +289,7 @@ export class HomePage implements OnInit {
         e.target.openPopup();
         setTimeout(() => {
           document.getElementById('edit-cp')?.addEventListener("click", () => {
-            this.scanAccesspoints(e.target);
-            //@TODO: add scan here - scan for accesspoints "in range" with min signal strength of 80
+            this.scanAccesspoints(data);
           });
           document.getElementById('delete-cp')?.addEventListener("click", () => {
             this._calibrationPointService.removeCalibrationPoint(data.id).subscribe(
@@ -399,22 +430,55 @@ export class HomePage implements OnInit {
     toast.present();
   }
 
-  scanAccesspoints(calibrationpoint: CalibrationPoint) {
-    console.log("start scan");
-    if(!this.platform.is('mobile')) {
-      // show alert - that you need to be on mobile phone
+  scanAccesspoints(calibrationpoint: CalibrationPoint) { //@TODO: finish scan 
+    console.log("Start scanning access points...", calibrationpoint);
+  
+    if (!this.platform.is('mobile')) {
+      alert("Scan is only supported on an Android phone. Please change your device.");
+      return;
     }
-    /**
-     * TODO: ADD Scan function - implement logic
-     * 1. Security check: check if user is using app on phone/mobile - scan should be only working on mobile 
-     * 2. Positioning check: check the current positioning of the user - user should be near the Calibrationpoint
-     * 3. Azimuth check: check the current azimuth from the user  - show compass with current direction of the phone
-     * 4. Align Phone: request the user to align the phone correct - North 360° & 0°, East 90°, South 180°, West 270°
-     * 5. Scan Accesspoints: scan for every direction available accesspoints (WiFi) and check their signal strength - ss =< 80
-     * 6. Safe & continue: safe available accesspoints for this calibrationpoin/direction and continue with next direction until done
-     * 
-     * UI: Alert or Modal?
-     */
+  
+    const newFingerprint: Fingerprint = {
+      accessPoints: [],
+      azimuthInDegrees: 0,
+      wifiData: [] 
+    };
+    this._calibrationPointService.addFingerprints(calibrationpoint, newFingerprint);
+  
+    this.networks.forEach(network => {
+      const newWifiData: WifiData = this._calibrationPointService.buildWifiData(
+        network.BSSID,         
+        network.frequency,      
+        network.level,         
+        Date.now()              
+      );
+
+      const ap: AccessPoint = this._accessPointService.buildAccessPoint(
+        network.BSSID,
+        network.SSID,
+        network.lat,
+        network.lng,
+        network.floor,
+        network.description
+      )
+
+      this._calibrationPointService.addAccessPoint(calibrationpoint, ap, 0);
+      this._calibrationPointService.addWifiData(calibrationpoint, newWifiData, 0); //@TODO: azimuth anhand von der Ausrichtung von Handy berechnen und User anleiten wie er ausrichten soll
+    });
+  
+    calibrationpoint.fingerprints.push(newFingerprint);
+  
+    this._calibrationPointService.editCalibrationPoint(calibrationpoint).subscribe(
+      response => {
+        console.log("cp updated successfully with new fingerprint:", response);
+        this.removeCalibrationPoints();
+        this.drawCalibrationPoints(parseInt(this.selectedFloor.toString()), this.calibrationPoints);
+        this.drawAccessPoints();
+      },
+      error => {
+        console.error("Error updating calibration point:", error);
+      }
+    );
   }
 
   async presentScanAlert(calibrationpoint: CalibrationPoint) {
