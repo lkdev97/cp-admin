@@ -432,7 +432,7 @@ export class HomePage implements OnInit {
 
   scanAccesspoints(calibrationpoint: CalibrationPoint) { //@TODO: finish scan 
     console.log("Start scanning access points...", calibrationpoint);
-  
+    console.log("all cp ", this.calibrationPoints);
     if (!this.platform.is('mobile')) {
       alert("Scan is only supported on an Android phone. Please change your device.");
       return;
@@ -471,9 +471,11 @@ export class HomePage implements OnInit {
     this._calibrationPointService.editCalibrationPoint(calibrationpoint).subscribe(
       response => {
         console.log("cp updated successfully with new fingerprint:", response);
-        this.removeCalibrationPoints();
-        this.drawCalibrationPoints(parseInt(this.selectedFloor.toString()), this.calibrationPoints);
-        this.drawAccessPoints();
+        this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: any) => {
+          this.removeCalibrationPoints();
+          this.drawCalibrationPoints(parseInt(this.selectedFloor.toString()), calibrationPoints);
+          this.drawAccessPoints();
+        });
       },
       error => {
         console.error("Error updating calibration point:", error);
