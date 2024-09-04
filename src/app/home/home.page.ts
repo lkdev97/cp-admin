@@ -440,11 +440,10 @@ export class HomePage implements OnInit {
   
     const newFingerprint: Fingerprint = {
       accessPoints: [],
-      azimuthInDegrees: 0,
+      azimuthInDegrees: 0, // @TODO: durch scan automatisch azimuth generieren
       wifiData: [] 
     };
-    this._calibrationPointService.addFingerprints(calibrationpoint, newFingerprint);
-  
+
     this.networks.forEach(network => {
       const newWifiData: WifiData = this._calibrationPointService.buildWifiData(
         network.BSSID,         
@@ -452,7 +451,7 @@ export class HomePage implements OnInit {
         network.level,         
         Date.now()              
       );
-
+  
       const ap: AccessPoint = this._accessPointService.buildAccessPoint(
         network.BSSID,
         network.SSID,
@@ -460,10 +459,10 @@ export class HomePage implements OnInit {
         network.lng,
         network.floor,
         network.description
-      )
-
-      this._calibrationPointService.addAccessPoint(calibrationpoint, ap, 0);
-      this._calibrationPointService.addWifiData(calibrationpoint, newWifiData, 0); //@TODO: azimuth anhand von der Ausrichtung von Handy berechnen und User anleiten wie er ausrichten soll
+      );
+  
+      newFingerprint.wifiData.push(newWifiData);
+      newFingerprint.accessPoints.push(ap);
     });
   
     calibrationpoint.fingerprints.push(newFingerprint);
