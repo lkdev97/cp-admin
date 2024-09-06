@@ -32,6 +32,7 @@ export class HomePage implements OnInit {
   accesspointForm: FormGroup;
   accessPoints: any[] = [];
   networks: any[] = [];
+  direction: number = 0;
   testNetworks = [ //@TODO: remove when done testing
     { SSID: 'TestNetwork1', bssid: '00:11:22:33:44:55', frequency: 0, level: -50 },
     { SSID: 'TestNetwork2', bssid: '66:77:88:99:AA:BB', frequency: 0, level: -70 },
@@ -289,7 +290,7 @@ export class HomePage implements OnInit {
         e.target.openPopup();
         setTimeout(() => {
           document.getElementById('edit-cp')?.addEventListener("click", () => {
-            this.scanAccesspoints(data);
+            this.startScan(data);
           });
           document.getElementById('delete-cp')?.addEventListener("click", () => {
             this._calibrationPointService.removeCalibrationPoint(data.id).subscribe(
@@ -420,6 +421,7 @@ export class HomePage implements OnInit {
       );
     }
   }
+  
   async showToast(message: string, type: 'success' | 'fail') {
     const toast = await this.toastController.create({
       message: message,
@@ -430,26 +432,64 @@ export class HomePage implements OnInit {
     toast.present();
   }
 
-  scanAccesspoints(calibrationpoint: CalibrationPoint) { //@TODO: finish scan 
-    console.log("Start scanning access points...", calibrationpoint);
-    console.log("all cp ", this.calibrationPoints);
+  async presentScanAlert(calibrationpoint: CalibrationPoint) {
+    const alert = await this.alertController.create({
+      header: "Scan starten",
+      message: "Möchten Sie den Scan der Accesspoints jetzt starten?",
+      buttons: [
+        {
+          text: 'Später',
+        }, {
+          text: 'Ja',
+          handler: () => this.startScan(calibrationpoint),
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async startScan(calibrationpoint: CalibrationPoint) {
     if (!this.platform.is('mobile')) {
-      alert("Scan is only supported on an Android phone. Please change your device.");
+      alert("Scan is only supported on an Android phone. Please change your device."); //@TODO: use angular component
       return;
     }
+    calibrationpoint.fingerprints = []; // Falls bei einem bestehenden Kalibrierungspunkt erneut Scan's durchgeführt werden sollen z.B. weil neue Accesspoints hinzugefügt wurden
+
+    const directions = [ //@TODO: remove after testing
+      { azimuth: 0, direction: 'Norden' },
+      { azimuth: 90, direction: 'Osten' },
+      { azimuth: 180, direction: 'Süden' },
+      { azimuth: 270, direction: 'Westen' }
+    ];
   
+    for (let i = 0; i < directions.length; i++) {
+      const { azimuth, direction } = directions[i];
+
+      await this.showScanModal(direction);
+      this.scanAccesspoints(calibrationpoint, azimuth);
+    }
+    this.showToast("Der Scan wurde erfolgreich beendet", "success");
+    this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: any) => {
+      this.removeCalibrationPoints();
+      this.drawCalibrationPoints(parseInt(this.selectedFloor.toString()), calibrationPoints);
+      this.drawAccessPoints();
+    });
+  }
+
+  scanAccesspoints(calibrationpoint: CalibrationPoint, azimuth: number) {
     const newFingerprint: Fingerprint = {
       accessPoints: [],
-      azimuthInDegrees: 0, // @TODO: durch scan automatisch azimuth generieren
-      wifiData: [] 
+      azimuthInDegrees: azimuth,
+      wifiData: []
     };
-
+  
     this.networks.forEach(network => {
       const newWifiData: WifiData = this._calibrationPointService.buildWifiData(
-        network.BSSID,         
-        network.frequency,      
-        network.level,         
-        Date.now()              
+        network.BSSID,
+        network.frequency,
+        network.level,
+        Date.now()
       );
   
       const ap: AccessPoint = this._accessPointService.buildAccessPoint(
@@ -467,36 +507,41 @@ export class HomePage implements OnInit {
   
     calibrationpoint.fingerprints.push(newFingerprint);
   
+    // Update the calibration point in the service 
+    // @TODO: bug in backend-service, put api doesnt set id of new fingerprint in calibrationpoint
     this._calibrationPointService.editCalibrationPoint(calibrationpoint).subscribe(
       response => {
         console.log("cp updated successfully with new fingerprint:", response);
-        this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: any) => {
-          this.removeCalibrationPoints();
-          this.drawCalibrationPoints(parseInt(this.selectedFloor.toString()), calibrationPoints);
-          this.drawAccessPoints();
-        });
       },
       error => {
         console.error("Error updating calibration point:", error);
       }
     );
   }
+  
+  async showScanModal(direction: string): Promise<void> {
+    const modal = document.getElementById('scan-modal') as HTMLIonModalElement;
 
-  async presentScanAlert(calibrationpoint: CalibrationPoint) {
-    const alert = await this.alertController.create({
-      header: "Scan starten",
-      message: "Möchten Sie den Scan der Accesspoints jetzt starten?",
-      buttons: [
-        {
-          text: 'Später',
-        }, {
-          text: 'Ja',
-          handler: () => this.scanAccesspoints(calibrationpoint),
-        }
-      ]
+    await modal.present();
+  
+    const modalTitle = modal.querySelector('#modal-title');
+    const modalText = modal.querySelector('#modal-text');
+    const scanBtn = modal.querySelector('#scan-btn');
+  
+    return new Promise((resolve) => {
+      if (modalTitle && modalText && scanBtn) {
+        modalTitle.textContent = `Scanne in Richtung ${direction}`;
+        modalText.textContent = `Bitte richten Sie Ihr Gerät nach ${direction} aus und drücken Sie auf "Scan starten", um den Scan zu starten.`;
+  
+        scanBtn.addEventListener('click', () => {
+          modal.dismiss(); 
+          resolve(); 
+        }, { once: true }); 
+      } else {
+        console.error("Modal elements not found!");
+        resolve(); 
+      }
     });
-
-    await alert.present();
   }
 
   getAccessPointCount(calibrationPoint: any): number {

@@ -191,6 +191,28 @@
   </ng-template>
 </ion-modal>
 
+<ion-modal id="scan-modal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title id="modal-title">Scannen</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="dismissModal()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <p>Aktuelle Ausrichtung: {{direction}}°</p>
+      <p id="modal-text">Bitte richten Sie Ihr Gerät aus.</p>
+      <ion-button id="scan-btn">Scan starten</ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+
 
 <ion-content>
   <div id="map" style="height: 100%; width: 100%"></div>
