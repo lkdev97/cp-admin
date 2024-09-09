@@ -10,6 +10,7 @@ import { CalibrationPoint, Fingerprint, WifiData } from '../models/calibrationpo
 import { AccessPoint } from '../models/accesspoint';
 import { Platform } from '@ionic/angular';
 import { WifiWizard2 } from '@ionic-native/wifi-wizard-2/ngx';
+import { DeviceOrientation, DeviceOrientationCompassHeading } from '@ionic-native/device-orientation/ngx';
 
 @Component({
   selector: 'app-home',
@@ -33,13 +34,7 @@ export class HomePage implements OnInit {
   accessPoints: any[] = [];
   networks: any[] = [];
   direction: number = 0;
-  testNetworks = [ //@TODO: remove when done testing
-    { SSID: 'TestNetwork1', bssid: '00:11:22:33:44:55', frequency: 0, level: -50 },
-    { SSID: 'TestNetwork2', bssid: '66:77:88:99:AA:BB', frequency: 0, level: -70 },
-    { SSID: 'TestNetwork3', bssid: 'CC:DD:EE:FF:00:11', frequency: 0, level: -30 },
-    { SSID: 'TestNetwork4', bssid: '22:33:44:55:66:77', frequency: 0, level: -90 },
-    { SSID: 'TestNetwork5', bssid: '88:99:AA:BB:CC:DD', frequency: 0, level: -60 }
-  ];
+  heading: number = 0;
   
 
   constructor(private modalController: ModalController, 
@@ -47,6 +42,7 @@ export class HomePage implements OnInit {
     private alertController: AlertController,
     private platform: Platform,
     private fb: FormBuilder, 
+    private deviceOrientation: DeviceOrientation,
     private wifiWizard: WifiWizard2,
     private _buildingService: BuildingService, 
     private _accessPointService: AccesspointService,
@@ -66,9 +62,20 @@ export class HomePage implements OnInit {
     this.initMap();
     this.loadAccesspoints();
     this.loadBuildings();
-    setInterval(() => {
-      this.scanWifi();
-    }, 100);
+    if (this.platform.is('android')) {
+      setInterval(() => {
+        this.scanWifi();
+      }, 100);
+      this.startCompass();
+    }
+  }
+
+  startCompass() {
+    this.deviceOrientation.watchHeading().subscribe(
+      (data: DeviceOrientationCompassHeading) => {
+        this.heading = Math.floor(data.magneticHeading);
+      }
+    );
   }
 
   loadAccesspoints(): void {
@@ -85,23 +92,21 @@ export class HomePage implements OnInit {
 
   async scanWifi() {
     try {
-      if (this.platform.is('android')) {
-        const results = await this.wifiWizard.scan();
-        console.log('networks:', results);
+      const results = await this.wifiWizard.scan();
+      console.log('networks:', results);
 
-        this.networks = results.filter((network: any) => {
-          return this.accessPoints.some(ap => ap.bssid === network.BSSID);
-        }).map((network: any) => {
-          const matchingAP = this.accessPoints.find(ap => ap.bssid === network.BSSID);
-          return {
-            ...network,
-            lat: matchingAP?.lat, 
-            lng: matchingAP?.lng,
-            floor: matchingAP?.floor,
-            description: matchingAP?.description
-          };
-        });
-      }
+      this.networks = results.filter((network: any) => {
+        return this.accessPoints.some(ap => ap.bssid === network.BSSID);
+      }).map((network: any) => {
+        const matchingAP = this.accessPoints.find(ap => ap.bssid === network.BSSID);
+        return {
+          ...network,
+          lat: matchingAP?.lat, 
+          lng: matchingAP?.lng,
+          floor: matchingAP?.floor,
+          description: matchingAP?.description
+        };
+      });
     } catch (error) {
       console.error('Fehler beim Scannen der Netzwerke:', error);
     }
@@ -457,17 +462,17 @@ export class HomePage implements OnInit {
     calibrationpoint.fingerprints = []; // Falls bei einem bestehenden Kalibrierungspunkt erneut Scan's durchgeführt werden sollen z.B. weil neue Accesspoints hinzugefügt wurden
 
     const directions = [ //@TODO: remove after testing
-      { azimuth: 0, direction: 'Norden' },
-      { azimuth: 90, direction: 'Osten' },
-      { azimuth: 180, direction: 'Süden' },
-      { azimuth: 270, direction: 'Westen' }
+      { azimuth: 0, direction: 'Norden (0° oder 360°)' },
+      { azimuth: 90, direction: 'Osten (90°)' },
+      { azimuth: 180, direction: 'Süden (180°)' },
+      { azimuth: 270, direction: 'Westen (270°)' }
     ];
   
     for (let i = 0; i < directions.length; i++) {
       const { azimuth, direction } = directions[i];
 
       await this.showScanModal(direction);
-      this.scanAccesspoints(calibrationpoint, azimuth);
+      this.scanAccesspoints(calibrationpoint);
     }
     this.showToast("Der Scan wurde erfolgreich beendet", "success");
     this._calibrationPointService.getCalibrationPoints().subscribe((calibrationPoints: any) => {
@@ -477,10 +482,10 @@ export class HomePage implements OnInit {
     });
   }
 
-  scanAccesspoints(calibrationpoint: CalibrationPoint, azimuth: number) {
+  scanAccesspoints(calibrationpoint: CalibrationPoint) {
     const newFingerprint: Fingerprint = {
       accessPoints: [],
-      azimuthInDegrees: azimuth,
+      azimuthInDegrees: this.heading,
       wifiData: []
     };
   

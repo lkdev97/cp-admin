@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { WifiWizard2 } from '@ionic-native/wifi-wizard-2/ngx';
+import { DeviceOrientation } from '@ionic-native/device-orientation/ngx';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
@@ -12,7 +13,7 @@ import { AppRoutingModule } from './app-routing.module';
 @NgModule({
   declarations: [AppComponent],
   imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, HttpClientModule],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, WifiWizard2],
+  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, WifiWizard2, DeviceOrientation],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
