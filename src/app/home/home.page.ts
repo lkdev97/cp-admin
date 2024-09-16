@@ -456,21 +456,19 @@ export class HomePage implements OnInit {
 
   async startScan(calibrationpoint: CalibrationPoint) {
     if (!this.platform.is('mobile')) {
-      alert("Scan is only supported on an Android phone. Please change your device."); //@TODO: use angular component
+      this.showToast("Scan is only supported on an Android phone. Please change your device.", "fail");
       return;
     }
     calibrationpoint.fingerprints = []; // Falls bei einem bestehenden Kalibrierungspunkt erneut Scan's durchgeführt werden sollen z.B. weil neue Accesspoints hinzugefügt wurden
 
-    const directions = [ //@TODO: remove after testing
-      { azimuth: 0, direction: 'Norden (0° oder 360°)' },
-      { azimuth: 90, direction: 'Osten (90°)' },
-      { azimuth: 180, direction: 'Süden (180°)' },
-      { azimuth: 270, direction: 'Westen (270°)' }
+    const directions = [
+      'Norden (0°)',
+      'Osten (90°)',
+      'Süden (180°)',
+      'Westen (270°)'
     ];
   
-    for (let i = 0; i < directions.length; i++) {
-      const { azimuth, direction } = directions[i];
-
+    for (const direction of directions) {
       await this.showScanModal(direction);
       this.scanAccesspoints(calibrationpoint);
     }
