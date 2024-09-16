@@ -488,6 +488,7 @@ export class HomePage implements OnInit {
     };
   
     this.networks.forEach(network => {
+      if(Math.abs(network.level) > 80) return;
       const newWifiData: WifiData = this._calibrationPointService.buildWifiData(
         network.BSSID,
         network.frequency,
