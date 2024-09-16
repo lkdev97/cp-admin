@@ -3,7 +3,7 @@
     <!-- <ion-title>
       Bachelorarbeit - Lars Köhler
     </ion-title> -->
-    <ion-buttons>
+    <ion-buttons slot="start">
       <ion-button (click)="reloadPage()">
         <ion-icon name="refresh-outline"></ion-icon>
       </ion-button>
@@ -15,7 +15,10 @@
       </ion-button>
     </ion-buttons>
     <ion-buttons [ngClass]="{ 'hidden': !isVisible }" slot="end">
-      <p>Gebäude: {{selectedBuilding}}<br>Stockwerk: {{selectedFloor}}</p>
+      <ion-label>
+        <div>Gebäude: {{selectedBuilding}}</div>
+        <div>Stockwerk: {{selectedFloor}}</div>
+      </ion-label>
       <ion-button id="add-accesspoint">
         <ion-icon name="add-outline"></ion-icon>
       </ion-button>
