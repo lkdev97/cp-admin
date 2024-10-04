@@ -33,7 +33,6 @@ export class HomePage implements OnInit {
   accesspointForm: FormGroup;
   accessPoints: any[] = [];
   networks: any[] = [];
-  direction: number = 0;
   heading: number = 0;
   
 
@@ -163,18 +162,6 @@ export class HomePage implements OnInit {
     setTimeout(() => {
       this.map.invalidateSize();
     }, 0);
-  
-    const markerIcon = L.icon({
-      iconUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41] 
-    });
-  
-    L.marker([50.58693, 8.68239], { icon: markerIcon }).addTo(this.map)
-      .bindPopup('THM, Gießen')
-      .openPopup();
   }
 
   drawAccessPoints(): void {
@@ -287,7 +274,7 @@ export class HomePage implements OnInit {
       const accessPointsCount = (data.fingerprints && data.fingerprints.length > 0 && data.fingerprints[0].accessPoints && data.fingerprints[0].accessPoints.length > 0) ? data.fingerprints[0].accessPoints.length : 0;
       const circle = L.circle([data.lat, data.lng], 0.5, { color: color, fillOpacity: 1 })
       .addTo(this.map)
-      .bindTooltip(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${accessPointsCount}`)
+      //.bindTooltip(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${accessPointsCount}`)
       .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${accessPointsCount}<br> <ion-button id="edit-cp" fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button id="delete-cp" fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`, { closeOnClick: false, autoClose: true })
       .on('click', (e) => {
         this.map.setView([data.lat, data.lng],this.map.getZoom() , { animate: false });
