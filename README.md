@@ -7,17 +7,6 @@ Ziel der Anwendung ist es, einem Benutzer eine einfache und effizente Möglichke
 Verwendet werden die Kalibrierungspunkte von dem WiFi-basierten Fingerprintingsystem um möglichst genaue Positionierungen durchführen zu können.
 Durch die visuelle Darstellung der Kalibrieriungspunkte können diese einfach und effizent verwaltet werden und dem Fingerprintingsystem so genaue Messungen für eine Positionierung zur Verfügung gestellt werden.
 
-In der Anwendung wird eine interaktive Karte angezeigt, in der unterschiedliche THM-Gebäuden in Gießen durch eine Umradung gekennzeichnet werden. Die Gebäudeinformationen werden über den [Indoor-Data-Service](https://git.thm.de/mocainfo/indoor-model-backend) von MoCaInfo abgerufen. 
-
-<img src="src/assets/images/Karte_Screenshot.jpg" alt="Innenraumansicht" width="250"/>
-
-Bei gekennzeichneten Gebäuden kann in eine Innenraumansicht gewechselt werden. In dieser Innenraumansicht werden die verfügbaren Kalibrierungspunkte des Gebäudes und Stockwerkes visuell als interaktiver Punkt eingezeichnet. 
-Es besteht die Möglichkeit einen bestehenden Kalibrierungspunkt zu betrachten, zu bearbeiten, zu löschen oder einen neuen hinzuzufügen. 
-Ein neuer Kalibrieriungspunkt kann einfach über einen Klick in den Innenraum erstellt werden. 
-Ein Kalibrieriungspunkt wird definiert durch ein Ortskoordinate (Längen- und Breitengrad) und die Gebäudeinformation (Gebäude und Stockwerk).
-Abgerufen werden die Kalibrierungspunkte über den [Fingerprinting-Service](https://git.thm.de/mocainfo/positioning-services/positioning-fingerprinting-service-ktor) von MoCaInfo.
-<img src="src/assets/images/Innenraum_Screenshot2.jpg" alt="Innenraumansicht" width="250"/>
-
 ### Versionen
 Die Anwendung wurde auf den Stand von folgenden Versionen entwickelt:
 - Ionic CLI: 7.2.0
@@ -38,3 +27,18 @@ Die Anwendung wurde auf den Stand von folgenden Versionen entwickelt:
 6. Erstellen der Produktionsversion </br>`ng build--configuration production` 
 7. Synchronisation mit der Android-Plattform </br> `ionic cap sync android`
 8. Start der App auf einem physischen Gerät </br> `ionic cap run android -l --external` 
+
+## Darstellung der Anwendung
+
+### Innenraumansicht
+In der Anwendung wird eine interaktive Karte angezeigt, in der unterschiedliche THM-Gebäuden in Gießen durch eine Umradung gekennzeichnet werden. Die Gebäudeinformationen werden über den [Indoor-Data-Service](https://git.thm.de/mocainfo/indoor-model-backend) von MoCaInfo abgerufen. 
+
+<img src="src/assets/images/Karte_Screenshot.jpg" alt="Innenraumansicht" width="250"/>
+
+### Kartenansicht
+Bei gekennzeichneten Gebäuden kann in eine Innenraumansicht gewechselt werden. In dieser Innenraumansicht werden die verfügbaren Kalibrierungspunkte des Gebäudes und Stockwerkes visuell als interaktiver Punkt eingezeichnet. 
+Es besteht die Möglichkeit einen bestehenden Kalibrierungspunkt zu betrachten, zu bearbeiten, zu löschen oder einen neuen hinzuzufügen. 
+Ein neuer Kalibrieriungspunkt kann einfach über einen Klick in den Innenraum erstellt werden. 
+Ein Kalibrieriungspunkt wird definiert durch ein Ortskoordinate (Längen- und Breitengrad) und die Gebäudeinformation (Gebäude und Stockwerk).
+Abgerufen werden die Kalibrierungspunkte über den [Fingerprinting-Service](https://git.thm.de/mocainfo/positioning-services/positioning-fingerprinting-service-ktor) von MoCaInfo.
+<img src="src/assets/images/Innenraum_Screenshot2.jpg" alt="Innenraumansicht" width="250"/>
