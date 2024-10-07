@@ -41,4 +41,5 @@ Es besteht die Möglichkeit einen bestehenden Kalibrierungspunkt zu betrachten, 
 Ein neuer Kalibrieriungspunkt kann einfach über einen Klick in den Innenraum erstellt werden. 
 Ein Kalibrieriungspunkt wird definiert durch ein Ortskoordinate (Längen- und Breitengrad) und die Gebäudeinformation (Gebäude und Stockwerk).
 Abgerufen werden die Kalibrierungspunkte über den [Fingerprinting-Service](https://git.thm.de/mocainfo/positioning-services/positioning-fingerprinting-service-ktor) von MoCaInfo.
+
 <img src="src/assets/images/Innenraum_Screenshot2.jpg" alt="Innenraumansicht" width="250"/>
