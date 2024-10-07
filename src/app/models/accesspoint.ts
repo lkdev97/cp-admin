@@ -5,5 +5,4 @@ export interface AccessPoint {
     lng: number;
     floor: number;
     description: String;
-    //building: String;
 }

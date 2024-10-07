@@ -57,8 +57,12 @@ export class HomePage implements OnInit {
     });
    }
 
+  /**
+   * implement OnInit's `ngOnInit` method
+   * load mapView and components
+   */
   ngOnInit() {
-    this.initMap();
+    this.initMap(); 
     this.loadAccesspoints();
     this.loadBuildings();
     if (this.platform.is('android')) {
@@ -69,6 +73,9 @@ export class HomePage implements OnInit {
     }
   }
 
+  /**
+   * start the Compass to monitor device heading
+   */
   startCompass() {
     this.deviceOrientation.watchHeading().subscribe(
       (data: DeviceOrientationCompassHeading) => {
@@ -77,18 +84,27 @@ export class HomePage implements OnInit {
     );
   }
 
+  /**
+   * load all Accesspoints from service
+   */
   loadAccesspoints(): void {
     this._accessPointService.getAccessPoints().subscribe((accessPoints: AccessPoint[]) => {
       this.accessPoints = accessPoints;
     });
   }
 
+  /**
+   * load all buildings from service
+   */
   loadBuildings(): void { 
     this._buildingService.getBuildings().subscribe((data: any) => {
       this.buildings = data?.buildings?.content;
     });
   }
 
+  /**
+   * scan the wifi and monitor results
+   */
   async scanWifi() {
     try {
       const results = await this.wifiWizard.scan();
@@ -111,6 +127,9 @@ export class HomePage implements OnInit {
     }
   }
 
+  /**
+   * display the buildings in the mapView
+   */
   ionViewDidEnter() {
     this._buildingService.getBuildings().subscribe(
       (data: any) => {
@@ -150,6 +169,9 @@ export class HomePage implements OnInit {
     );
   }
 
+  /**
+   * init the default mapView when app started
+   */
   initMap() {
     this.map = L.map('map').setView(this.centerLatLng, 19);
   
@@ -164,6 +186,9 @@ export class HomePage implements OnInit {
     }, 0);
   }
 
+  /**
+   * draw all Accesspoints on the Map 
+   */
   drawAccessPoints(): void {
     const wifiIcon = L.icon({
       iconUrl: './assets/icon/wifi-outline.png',
@@ -171,16 +196,19 @@ export class HomePage implements OnInit {
     });
   
     this.removeAccessPoints();
-    //this._accessPointService.getAccessPoints().subscribe((accessPoints: AccessPoint[]) => {
-      //this.accessPoints = accessPoints; 
       const filteredAccessPoints = this._accessPointService.filterAccessPoints(this.accessPoints, this.selectedFloor, this.selectedBuilding);
       filteredAccessPoints.forEach((filteredAccessPoint: any) => {
         const accessPointCircle = L.marker([filteredAccessPoint.lat, filteredAccessPoint.lng], { icon: wifiIcon }).addTo(this.map).bindTooltip(`Accesspoint: ${filteredAccessPoint.bssid}`);
         this.accessPointCircles.push(accessPointCircle);
       })
-    //});
   }
 
+  /**
+   * draw new Accesspoint at Position latlng on the Map
+   * @param latlng Position of the Accesspoint
+   * @param bssid bssid of the new Accespoint
+   * @returns 
+   */
   drawAccessPoint(latlng: L.LatLngExpression, bssid: number): L.Marker { 
     const wifiIcon = L.icon({
       iconUrl: './assets/icon/wifi-outline.png',
@@ -189,6 +217,9 @@ export class HomePage implements OnInit {
     return L.marker(latlng, { icon: wifiIcon }).addTo(this.map).bindTooltip(`Accesspoint: ${bssid}`);
   }
 
+  /**
+   * remove all Accesspoints
+   */
   removeAccessPoints(): void {
     this.accessPointCircles.forEach((accessCircle) => { 
       this.map.removeLayer(accessCircle);
@@ -196,6 +227,12 @@ export class HomePage implements OnInit {
     this.accessPointCircles = [];
   }
 
+  /**
+   * draw rooms for the indoorView
+   * @param building current active and selected Building
+   * @param selectedLevel selected Floor in the indoorView
+   * @returns 
+   */
   drawRooms(building: any, selectedLevel: number): void {
     const selectedFloor = building.levels.find((level: any) => level.level === selectedLevel);
     if (!selectedFloor) {
@@ -259,6 +296,11 @@ export class HomePage implements OnInit {
 
   }
 
+  /**
+   * draw the calibrationPoints in the indoorView
+   * @param selectedLevel selected floor
+   * @param calibrationPoints all calibrationPoints
+   */
   drawCalibrationPoints(selectedLevel: number, calibrationPoints: any): void {
     this.removeCalibrationPoints();
     this.calibrationPoints = calibrationPoints.filter((x: any) => x.floor == selectedLevel && x.building == this.selectedBuilding);
@@ -274,7 +316,6 @@ export class HomePage implements OnInit {
       const accessPointsCount = (data.fingerprints && data.fingerprints.length > 0 && data.fingerprints[0].accessPoints && data.fingerprints[0].accessPoints.length > 0) ? data.fingerprints[0].accessPoints.length : 0;
       const circle = L.circle([data.lat, data.lng], 0.5, { color: color, fillOpacity: 1 })
       .addTo(this.map)
-      //.bindTooltip(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${accessPointsCount}`)
       .bindPopup(`ID: ${data.id} <br> Latitude: ${data.lat} <br> Longitude: ${data.lng} <br>Accesspoints: ${accessPointsCount}<br> <ion-button id="edit-cp" fill="clear"><ion-icon name="create-outline"></ion-icon></ion-button><ion-button id="delete-cp" fill="clear"><ion-icon name="trash-outline"></ion-icon></ion-button>`, { closeOnClick: false, autoClose: true })
       .on('click', (e) => {
         this.map.setView([data.lat, data.lng],this.map.getZoom() , { animate: false });
@@ -313,6 +354,11 @@ export class HomePage implements OnInit {
     });
   }
 
+  /**
+   * load the floorButtons to change the floor in the indoorView
+   * @param building selected building
+   * @returns return if element not found document
+   */
   loadFloorButtons(building: any) {
     const floorButtonsContainer = document.getElementById('floor-buttons');
     if (!floorButtonsContainer) return;
@@ -345,6 +391,10 @@ export class HomePage implements OnInit {
     floorButtonsContainer.appendChild(this.createExitBtn());
   }
 
+  /**
+   * add exitButton to leave the indoorView
+   * @returns 
+   */
   createExitBtn(): HTMLIonButtonElement {
     const exitBtn = document.createElement('ion-button');
     const exitIcon = document.createElement('ion-icon');
@@ -355,6 +405,9 @@ export class HomePage implements OnInit {
     return exitBtn;
   }
   
+  /**
+   * remove all calibrationPoints from map Layer
+   */
   removeCalibrationPoints(): void {
     if (this.circles) {
       this.circles.forEach(x => {
@@ -364,6 +417,10 @@ export class HomePage implements OnInit {
     }
   }
 
+  /**
+   * 
+   * @returns remove all rooms when leaving the indoorView
+   */
   clearRooms() {
     if (this.currentPolygon) {
       this.map.removeLayer(this.currentPolygon);
@@ -378,10 +435,16 @@ export class HomePage implements OnInit {
     }
   }
 
+  /**
+   * close the modal
+   */
   async dismissModal() {
     await this.modalController.dismiss();
   }
 
+  /**
+   * center the view on the map, used on button click
+   */
   centerView() {
     if(this.currentPolygon) {
       this.buildings.filter((x: any) => this.selectedBuilding === x.name.replace(/\s/g, '')).forEach((data: any) => {
@@ -391,6 +454,9 @@ export class HomePage implements OnInit {
     else this.map.setView(this.centerLatLng, 19);
   }
 
+  /**
+   * add a new accessPoint in the database and draw it
+   */
   addAccesspoint(): void {
     if (this.accesspointForm.valid) {
       const formValues = this.accesspointForm.value;
@@ -414,6 +480,11 @@ export class HomePage implements OnInit {
     }
   }
   
+  /**
+   * display a toast 
+   * @param message display string for the toast
+   * @param type success or fail
+   */
   async showToast(message: string, type: 'success' | 'fail') {
     const toast = await this.toastController.create({
       message: message,
@@ -424,6 +495,10 @@ export class HomePage implements OnInit {
     toast.present();
   }
 
+  /**
+   * display the scan alert
+   * @param calibrationpoint selected calibrationPoint
+   */
   async presentScanAlert(calibrationpoint: CalibrationPoint) {
     const alert = await this.alertController.create({
       header: "Scan starten",
@@ -441,12 +516,17 @@ export class HomePage implements OnInit {
     await alert.present();
   }
 
+  /**
+   * start the Scan
+   * @param calibrationpoint selected calibrationPoint 
+   * @returns 
+   */
   async startScan(calibrationpoint: CalibrationPoint) {
     if (!this.platform.is('mobile')) {
       this.showToast("Scan is only supported on an Android phone. Please change your device.", "fail");
       return;
     }
-    calibrationpoint.fingerprints = []; // Falls bei einem bestehenden Kalibrierungspunkt erneut Scan's durchgeführt werden sollen z.B. weil neue Accesspoints hinzugefügt wurden
+    calibrationpoint.fingerprints = [];
 
     const directions = [
       'Norden (0°)',
@@ -467,6 +547,10 @@ export class HomePage implements OnInit {
     });
   }
 
+  /**
+   * safe the measurement for the current direction
+   * @param calibrationpoint selected calibrationPoint
+   */
   scanAccesspoints(calibrationpoint: CalibrationPoint) {
     const newFingerprint: Fingerprint = {
       accessPoints: [],
@@ -498,8 +582,6 @@ export class HomePage implements OnInit {
   
     calibrationpoint.fingerprints.push(newFingerprint);
   
-    // Update the calibration point in the service 
-    // @TODO: bug in backend-service, put api doesnt set id of new fingerprint in calibrationpoint
     this._calibrationPointService.editCalibrationPoint(calibrationpoint).subscribe(
       response => {
         console.log("cp updated successfully with new fingerprint:", response);
@@ -510,6 +592,11 @@ export class HomePage implements OnInit {
     );
   }
   
+  /**
+   * show the scanModal
+   * @param direction next device direction for scan
+   * @returns 
+   */
   async showScanModal(direction: string): Promise<void> {
     const modal = document.getElementById('scan-modal') as HTMLIonModalElement;
 
@@ -535,10 +622,18 @@ export class HomePage implements OnInit {
     });
   }
 
+  /**
+   * return a number of accesspoint count, needed in the view
+   * @param calibrationPoint selected calibrationPoint
+   * @returns 
+   */
   getAccessPointCount(calibrationPoint: any): number {
     return calibrationPoint.fingerprints && calibrationPoint.fingerprints.length > 0 && calibrationPoint.fingerprints[0].accessPoints ? calibrationPoint.fingerprints[0].accessPoints.length: 0;
   }
 
+  /**
+   * reload the pageContent
+   */
   reloadPage() {
     window.location.reload();
   }
