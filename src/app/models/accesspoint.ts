@@ -1,3 +1,6 @@
+/**
+ * Represents a AccessPoint
+ */
 export interface AccessPoint {
     bssid: String;
     ssid: String;
@@ -5,4 +8,5 @@ export interface AccessPoint {
     lng: number;
     floor: number;
     description: String;
+    //building: String;
 }

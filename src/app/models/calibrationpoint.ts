@@ -1,5 +1,8 @@
 import { AccessPoint } from "./accesspoint";
 
+/**
+ * Represents a CalibrationPoint
+ */
 export interface CalibrationPoint {
     lat: number;
     lng: number;
@@ -9,12 +12,18 @@ export interface CalibrationPoint {
     
 }
   
+/**
+ * Represents a Fingerprint
+ */
 export interface Fingerprint {
     azimuthInDegrees: number;
     wifiData: WifiData[];
     accessPoints: AccessPoint[];
 }
 
+/**
+ * Represents WifiData
+ */
 export interface WifiData {
     bssid: String;
     frequency: number;

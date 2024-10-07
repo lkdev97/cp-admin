@@ -17,6 +17,9 @@ import { DeviceOrientation, DeviceOrientationCompassHeading } from '@ionic-nativ
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
 })
+/**
+ * main component of the application
+ */
 export class HomePage implements OnInit {
 
   buildings: any[] = [];

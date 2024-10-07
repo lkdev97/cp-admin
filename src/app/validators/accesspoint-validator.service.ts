@@ -4,6 +4,9 @@ import { AbstractControl, ValidationErrors } from '@angular/forms';
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * validator to check in accesspoint modal if the inputs are valid
+ */
 export class AccesspointValidatorService {
   static bssidValidator(control: AbstractControl): ValidationErrors | null {
     const regex = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
