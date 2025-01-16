@@ -1,0 +1,214 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="reloadPage()">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="centerView()">
+        <ion-icon name="locate-outline"></ion-icon>
+      </ion-button>
+      <ion-button id="info">
+        <ion-icon name="information-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons [ngClass]="{ 'hidden': !isVisible }" slot="end">
+      <ion-label>
+        <div>Gebäude: {{selectedBuilding}}</div>
+        <div>Stockwerk: {{selectedFloor}}</div>
+      </ion-label>
+      <ion-button id="add-accesspoint">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-button>
+      <ion-button id="list-wifi">
+        <ion-icon name="radio-outline"></ion-icon>
+      </ion-button>
+      <ion-button id="list-cp">
+        <ion-icon name="reader-outline"></ion-icon>
+      </ion-button>
+      <ion-button id="list-ap">
+        <ion-icon name="wifi-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="clearRooms()">
+        <ion-icon slot="icon-only" name="exit-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-modal trigger="add-accesspoint">
+  <ng-template>
+    <form [formGroup]="accesspointForm" (ngSubmit)="addAccesspoint()">
+      <ion-header>
+        <ion-title>Neuen Accesspunkt hinzufügen</ion-title>
+      </ion-header>
+      <ion-list>
+        <ion-item>
+          <ion-input formControlName="bssid" label="bssid" placeholder="dc:9f:db:5a:cb:83"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="ssid" label="ssid" placeholder="MoCaPos"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="lat" min=0 type="number" label="Latitude" placeholder="50.587191115889425"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="lng" min=0 type="number" label="Longitude" placeholder="8.682209469495582"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="description" label="Description" placeholder="Am Fenster"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input formControlName="floor" min=0 max=4 type="number" label="Stockwerk" placeholder="{{selectedFloor}}"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label>Gebäude</ion-label>
+          <ion-select formControlName="building">
+            <ion-select-option value="A20">A20</ion-select-option>
+            <ion-select-option value="A10">A10</ion-select-option>
+            <ion-select-option value="A12">A12</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-list>
+      <ion-button type="submit" color="primary" [disabled]="!accesspointForm.valid">Add</ion-button>
+      <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">Close</ion-button>
+    </form>
+  </ng-template>
+</ion-modal>
+
+
+<ion-modal trigger="list-wifi">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+        <ion-title>WiFi-Accesspoints</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-list>
+        <ion-item *ngFor="let network of networks">
+          <ion-label>
+            <p>{{ network.SSID }}</p>
+            <p>BSSID: {{ network.BSSID }}</p>
+            <p>Signalstärke: {{ network.level }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<ion-modal trigger="list-ap">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+        <ion-title>Accesspoints</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-list *ngFor="let accessPoint of accessPoints">
+        <ion-item>
+          <p>BSSID: {{accessPoint.bssid}}<br>Latitude: {{accessPoint.lat}}<br>Longitude: {{accessPoint.lng}} <br>Floor: {{accessPoint.floor}}</p>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<ion-modal trigger="list-cp">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+        <ion-title>Kalibrierungspunkte</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-list *ngFor="let calibrationPoint of calibrationPoints">
+        <ion-item>
+          <p>ID: {{calibrationPoint.id}}<br>Latitude: {{calibrationPoint.lat}}<br>Longitude: {{calibrationPoint.lng}}<br>Accesspoints: {{getAccessPointCount(calibrationPoint)}}</p>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<ion-modal trigger="info">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-button fill="clear" color="dark" (click)="dismissModal()" slot="end">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+        <ion-title>Info</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <p>In der Innenraumansicht werden die Kalibrierungspunkte abhängig davon, wie viele Accesspoints sich in der Nähe befinden in einer anderen Farbe eingezeichnet. <br> Folgende Legende erklärt wofür welche Farbe steht:</p>
+      <div class="legend-item">
+        <div class="circle grey"></div>
+        <span>Keine Accesspoints</span>
+      </div>
+      <div class="legend-item">
+        <div class="circle red"></div>
+        <span>1-2 Accesspoints</span>
+      </div>
+      <div class="legend-item">
+        <div class="circle yellow"></div>
+        <span>3 Accesspoints</span>
+      </div>
+      <div class="legend-item">
+        <div class="circle green"></div>
+        <span>Mehr als 3 Accesspoints</span>
+      </div>
+      <div class="legend-item">
+        <div class="circle no-fill grey"></div>
+        <span>Noch nicht definiert</span>
+      </div>
+      <p>Accesspoints werden in folgenden Farben eingezeichnet:</p>
+      <div class="legend-item">
+        <ion-icon name="wifi-outline" style="width: 1.2em; height: 1.2em; background-color: blue; border-radius: 12rem; border: 1px solid blue; margin-right: 8px"></ion-icon>
+        <span>Aktiv</span>
+      </div>
+      <div class="legend-item">
+        <ion-icon name="wifi-outline" style="width: 1.2em; height: 1.2em; margin-right: 8px"></ion-icon>
+        <span>Nicht aktiv</span>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<ion-modal id="scan-modal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title id="modal-title">Scannen</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="dismissModal()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <p>Aktuelle Ausrichtung: {{heading}}°</p>
+      <p id="modal-text">Bitte richten Sie Ihr Gerät aus.</p>
+      <ion-button id="scan-btn">Scan starten</ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+
+
+<ion-content>
+  <div id="map" style="height: 100%; width: 100%"></div>
+  <div id="floor-buttons"></div>
+</ion-content>

@@ -1,0 +1,7 @@
+{
+  "name": "CP Admin",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
